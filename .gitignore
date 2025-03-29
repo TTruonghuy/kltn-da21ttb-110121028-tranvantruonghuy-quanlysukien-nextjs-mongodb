@@ -1,0 +1,16 @@
+# Loại trừ các file và thư mục cho event-frontend
+event-frontend/node_modules
+event-frontend/.next
+event-frontend/.env*
+event-frontend/out
+event-frontend/build
+
+# Loại trừ các file và thư mục cho event-management
+event-management/node_modules
+event-management/dist
+event-management/.env*
+event-management/logs
+
+# Loại trừ các file và thư mục chung
+.DS_Store
+.vscode/
