@@ -28,32 +28,42 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
 
   //const [user, setUser] = useState<{ email: string } | null>(null);
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
-      const formData = new FormData();
-      formData.append("email", email);
-      formData.append("password", password);
-      formData.append("role", isOrganizer ? "organizer" : "attendee");
-      if (!isLogin) {
-        formData.append("name", name);
-        if (image) formData.append("image", image);
-      }
 
-      await axios.post(endpoint, formData, { withCredentials: true });
       if (isLogin) {
-        const res = await axios.get("http://localhost:5000/auth/me", { withCredentials: true });
+        const response = await axios.post(
+          endpoint,
+          { email, password },
+          { withCredentials: true }
+        );
+        document.cookie = `jwt=${response.data.accessToken}; path=/; SameSite=Strict`; // Lưu token vào cookie
+        const res = await axios.get("/auth/me", { withCredentials: true });
         setUser(res.data.user);
         onClose();
         router.refresh();
       } else {
+        const formData = new FormData();
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("role", isOrganizer ? "organizer" : "attendee");
+        formData.append("name", name);
+        if (image) {
+          formData.append("image", image);
+        }
+
+        await axios.post(endpoint, formData, {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         alert("Đăng ký thành công! Vui lòng đăng nhập.");
         setIsLogin(true);
       }
     } catch (error: any) {
+      console.error("Error:", error.response?.data || error.message); // Log chi tiết lỗi
       alert(error.response?.data?.message || "Có lỗi xảy ra");
     } finally {
       setLoading(false);
@@ -106,7 +116,13 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
             <Button className="flex items-center px-6 w-[175px] py-3 bg-gray-200 text-gray-800 text-lg hover:bg-gray-300 h-11">
               <FaFacebook className="mr-2 text-2xl text-blue-600" /> Facebook
             </Button>
-            <Button className="flex items-center px-6 w-[175px] py-3 bg-gray-200 text-gray-800 text-lg hover:bg-gray-300 h-11">
+            <Button
+              onClick={() => {
+                const role = isOrganizer ? 'organizer' : 'user'; // Lấy role từ trạng thái
+                window.location.href = `http://localhost:5000/auth/google?role=${role}`; // Gửi role cùng với yêu cầu
+              }}
+              className="flex items-center px-6 w-[175px] py-3 bg-gray-200 text-gray-800 text-lg hover:bg-gray-300 h-11"
+            >
               <FcGoogle className="mr-2 text-2xl" /> Google
             </Button>
           </div>

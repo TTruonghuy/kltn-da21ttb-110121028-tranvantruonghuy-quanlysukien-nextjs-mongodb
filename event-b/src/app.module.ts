@@ -6,9 +6,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
-import { UploadController } from './uploads/upload.controller';   
-import { UploadService } from './uploads/upload.service';
-import { UploadModule } from './uploads/upload.module';
+//import { UploadController } from './uploads/upload.controller';   
+//import { UploadService } from './uploads/upload.service';
+//import { UploadModule } from './uploads/upload.module';
 
 @Module({
   imports: [
@@ -17,10 +17,10 @@ import { UploadModule } from './uploads/upload.module';
     AuthModule,
     UsersModule,
     DatabaseModule, 
-    UploadModule,
+    //UploadModule,
   ],
-  controllers: [AppController, UploadController],
-  providers: [AppService, UploadService],
+  controllers: [AppController],
+  providers: [AppService],
   
 })
 export class AppModule {}

@@ -7,14 +7,19 @@ import { JwtStrategy } from "./jwt.strategy";
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '../database/schemas/user.schema';
+import { Organizer, OrganizerSchema } from '../database/schemas/organizer.schema'; // Import Organizer schema
 import { AccountModule } from 'src/account/account.module';
 import { AccountService } from 'src/account/account.service';
+import { GoogleStrategy } from './google.strategy'; // Import GoogleStrategy
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     PassportModule.register({ defaultStrategy: "jwt" }),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Organizer.name, schema: OrganizerSchema }, // Đăng ký Organizer schema
+    ]),
     AccountModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -26,7 +31,7 @@ import { AccountService } from 'src/account/account.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy], // Thêm GoogleStrategy
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -6,7 +6,7 @@ export type UserDocument = User & Document;
 @Schema({ timestamps: true })
 export class User {
   @Prop({ type: Types.ObjectId, ref: 'Account', required: true })
-  account_id: Types.ObjectId;
+  account_id: Types.ObjectId; // Đảm bảo kiểu dữ liệu là ObjectId
 
   @Prop({ required: true })
   name: string;
@@ -18,7 +18,7 @@ export class User {
   email: string;
 
   @Prop()
-  avatar: string;
+  avatar: string; // Thêm trường avatar
 
   @Prop()
   dob: Date;
