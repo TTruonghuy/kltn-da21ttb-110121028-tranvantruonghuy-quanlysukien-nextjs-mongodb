@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "@/app/components/auth/AuthFrom";
 import axios from "@/lib/axiosInstance";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -11,28 +12,48 @@ export default function Home() {
   const [showAuth, setShowAuth] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Fetch user data on mount
   useEffect(() => {
     axios
       .get("http://localhost:5000/auth/me", { withCredentials: true })
       .then((res) => {
-        console.log("User data fetched:", res.data); // Log thông tin user
-        setUser(res.data.user); // Đảm bảo user chứa name, email, và avatar
+        if (res.data && res.data.user) {
+          setUser(res.data.user); // Đảm bảo user chứa name, email, và avatar
+        } else {
+          //console.error("Invalid user data:");
+          setUser(null);
+        }
       })
       .catch((err) => {
-        console.error("Error fetching user data:", err.response || err.message);
+        //console.error("Error fetching user data:");
         setUser(null);
       });
   }, []);
 
+  // Handle logout
   const handleLogout = async () => {
     try {
       await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
       setUser(null);
       router.refresh();
     } catch (err) {
-      console.error("Error during logout:", err.message); // Log lỗi
+      console.error("Lỗi"); // Log lỗi
     }
   };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!(event.target as HTMLElement).closest(".menu-container")) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -48,9 +69,9 @@ export default function Home() {
         </nav>
         <div className="relative">
           {user ? (
-            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setMenuOpen(!menuOpen)}>
+            <div className="flex items-center space-x-3 cursor-pointer menu-container" onClick={() => setMenuOpen(!menuOpen)}>
               <img
-                src={user.avatar || "/default-avatar.png"} // Thay thế bằng thẻ <img>
+                src={user.avatar || "/default-avatar.png"}
                 alt="Avatar"
                 width={40}
                 height={40}
@@ -83,8 +104,8 @@ export default function Home() {
       </header>
 
       {/* Body */}
-      <main className="flex-grow flex items-center justify-center bg-gray-100 text-center p-8">
-        <h1 className="text-3xl font-bold">Chào mừng {user?.name || "bạn"} đến với EzZone</h1>
+      <main className="flex-grow flex flex-col items-center justify-center bg-gray-100 text-center p-8">
+        <h1 className="text-3xl font-bold mb-6">Chào mừng {user?.name || "bạn"} đến với EzZone</h1>
 
         {showAuth && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">

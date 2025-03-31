@@ -10,7 +10,7 @@ export class Account {
     @Prop({ required: false }) // Đặt required thành false
     password: string;
 
-    @Prop({ required: true, enum: ['user','organizer','admin','attendee']})
+    @Prop({ required: true, enum: ['user','organizer','admin']})
     role: string;
 
     @Prop({ default: 'active', enum: ['active','inactive','banned']})

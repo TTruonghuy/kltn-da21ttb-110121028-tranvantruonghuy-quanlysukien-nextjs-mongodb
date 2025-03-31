@@ -91,24 +91,20 @@ export class AuthService {
     }
   }
 
-  async loginWithGoogle(user: { email: string; name: string; avatar: string, role?: string }) {
+  async loginWithGoogle(user: { email: string; name: string; avatar: string; role: string }) {
     try {
       console.log("Google User Data:", user); // Log thông tin user từ Google
 
       const existingAccount = await this.accountService.findByEmail(user.email);
       if (!existingAccount) {
-        if (!user.role) {
-          throw new Error("Role is required for new Google users"); // Yêu cầu role nếu người dùng mới
-        }
-
         console.log("Creating new account for Google user...");
         const newAccount = await this.accountService.create({
           email: user.email,
           password: 'google_oauth_default_password', // Giá trị mặc định cho password
-          role: user.role, // Sử dụng role từ frontend
+          role: user.role, // Role được xác định từ AuthForm
         });
 
-        if (user.role === 'user' || user.role === 'attendee') {
+        if (user.role === 'user') {
           await this.userModel.create({
             account_id: newAccount._id,
             name: user.name,

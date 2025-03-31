@@ -27,7 +27,7 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("Error Response:", error.response?.data || error.message); // Log chi tiết lỗi
+    //console.error("Error Response:", error.response?.data || error.message); // Log chi tiết lỗi
     return Promise.reject(error);
   }
 );

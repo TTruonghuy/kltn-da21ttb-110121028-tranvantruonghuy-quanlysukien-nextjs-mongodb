@@ -1,16 +1,17 @@
 import { Controller, Post, Body, UseGuards, Get, Req, HttpCode, Res, UploadedFile, UseInterceptors, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AccountService } from 'src/account/account.service'
+import { AccountService } from 'src/account/account.service';
 import { JwtAuthGuard } from "./jwt-auth.guard";
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from "express";
+import { Response, Request } from "express"; // Import Request từ express
 import { memoryStorage } from 'multer';
 import { extname } from 'path';
 
 export interface RequestWithUser extends Request {
   user: any;
   cookies: Record<string, string>;
+  query: Record<string, any>; // Thêm query vào định nghĩa
 }
 
 @Controller('auth')
@@ -76,8 +77,30 @@ export class AuthController {
   }
 
   @Get('google')
+  async googleLogin(@Req() req: RequestWithUser, @Res() res: Response) {
+    const { role } = req.query; // Lấy role từ query string
+    console.log("Google OAuth Role (Frontend):", role); // Log role để kiểm tra
+
+    if (!role) {
+      return res.status(400).send({ message: "Role is required" }); // Xử lý lỗi nếu role không được cung cấp
+    }
+
+    // Lưu role vào cookie
+    res.cookie('oauth_role', role, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 5 * 60 * 1000, // Cookie tồn tại trong 5 phút
+    });
+
+    // Chuyển hướng đến Google
+    console.log("Cookie oauth_role set with value:", role);
+    return res.redirect('/auth/google/start');
+  }
+
+  @Get('google/start')
   @UseGuards(AuthGuard('google'))
-  async googleLogin() {
+  async googleStart() {
     // Redirect to Google for authentication
   }
 
@@ -85,12 +108,22 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: RequestWithUser, @Res() res: Response) {
     try {
+      // Lấy role từ cookie
+      const role = req.cookies['oauth_role'];
+      console.log("Google OAuth Role (Cookie):", role); // Log role từ cookie
+
+      if (!role) {
+        throw new Error('Role is missing in Google OAuth callback');
+      }
+
+      // Thêm role vào req.user
+      req.user.role = role;
+
       console.log("Google Callback User:", req.user); // Log thông tin user từ Google
 
-      // Kiểm tra nếu người dùng mới cần cung cấp role
-      const token = await this.authService.loginWithGoogle({ ...req.user, role: req.query.role as string });
+      const result = await this.authService.loginWithGoogle({ ...req.user });
 
-      res.cookie('jwt', token.accessToken, {
+      res.cookie('jwt', result.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
