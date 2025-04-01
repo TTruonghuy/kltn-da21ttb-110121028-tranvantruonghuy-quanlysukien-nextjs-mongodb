@@ -66,17 +66,17 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
   };
 
   return (
-    <div className="flex flex-col bg-none">
+    <div className="flex flex-col bg-none pt-20 pb-20">
       <div className="flex justify-center">
         <button
           onClick={() => setIsOrganizer(false)}
-          className={!isOrganizer ? "bg-white text-gray-700  w-[665px] h-12 rounded-tl-3xl rounded-tr-3xl" : " bg-white w-[300px] h-12 rounded-tl-3xl rounded-tr-3xl text-gray-400"}
+          className={!isOrganizer ? "bg-white text-gray-700  w-[600px] h-12 rounded-tl-3xl rounded-tr-3xl" : " bg-white w-[200px] h-12 rounded-tl-3xl rounded-tr-3xl text-gray-400"}
         >
           <p className="font-bold">Người tham dự</p>
         </button>
         <button
           onClick={() => setIsOrganizer(true)}
-          className={isOrganizer ? "bg-blue-100 text-gray-700 ml-1 w-[665px] h-12 rounded-tl-3xl rounded-tr-3xl" : "ml-1 bg-blue-50 w-[300px] h-12 rounded-tl-3xl rounded-tr-3xl text-gray-400"}
+          className={isOrganizer ? "bg-blue-100 text-gray-700 ml-1 w-[600px] h-12 rounded-tl-3xl rounded-tr-3xl" : "ml-1 bg-blue-50 w-[200px] h-12 rounded-tl-3xl rounded-tr-3xl text-gray-400"}
         >
           <p className="font-bold">Ban tổ chức</p>
         </button>
@@ -84,11 +84,11 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
       <div
         className={`flex ${
           isOrganizer ? "bg-blue-100" : "bg-white"
-        } rounded-bl-3xl rounded-br-3xl shadow-xl w-[969px] overflow-hidden justify-center pl-4 pt-4`}
+        } rounded-bl-3xl rounded-br-3xl shadow-xl  overflow-hidden justify-between p-4`}
       >
         {/* Thay đổi ảnh nền dựa trên isOrganizer */}
         <div
-          className="hidden md:block w-1/2 bg-center"
+          className="hidden md:block w-[60%] bg-center"
           style={{
              backgroundRepeat: "no-repeat",
             backgroundImage: isOrganizer
@@ -96,11 +96,11 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
               : "url('../user1.png')", // Ảnh nền cho Người tham dự
           }}
         />
-        <div className="w-full md:w-1/2 pt-2 p-10 flex flex-col justify-center">
-          <button className="flex ml-[82%] mr-[-20px] justify-end group text-[0px] hover:scale-110 hover:text-[15px] hover:text-red-600" onClick={onClose}>
+        <div className="pt-2 p-5 pl-5 w-[366px] flex flex-col justify-center">
+          <button className="flex ml-[82%] mr-[-20px] justify-end group text-[0px] hover:scale-110 hover:text-[15px] hover:text-red-700" onClick={onClose}>
             <IoClose className=" flex pb-2 w-8 h-8 " /> Đóng
           </button>
-          <h4 className="text-3xl font-bold text-center mb-6 text-gray-700">
+          <h4 className="text-[20px] font-bold text-center mb-6 text-gray-700">
             {isLogin ? (isOrganizer ? "Đăng nhập Ban tổ chức" : "Đăng nhập Người tham gia") : isOrganizer ? "Đăng ký Ban tổ chức" : "Đăng ký Người tham gia"}
           </h4>
 
@@ -111,7 +111,7 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
                 placeholder={isOrganizer ? "Tên tổ chức" : "Họ và tên"}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full text-lg py-3 h-11"
+                className="py-3 h-9"
                 required
               />
             )}
@@ -120,7 +120,7 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-                className="w-full text-lg py-3 h-11"
+                className=" py-3 h-9"
                 required
             />
             <Input
@@ -128,29 +128,29 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
               placeholder="Mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-                className="w-full text-lg py-3 h-11"
+                className="w-full py-3 h-9"
                 required
             />
             {!isLogin && (
               <div className="flex items-center">
-                <label className="mr-3 whitespace-nowrap text-gray-600">
+                <label className="mr-3 whitespace-nowrap text-gray-600 text-[13px]">
                   {isOrganizer ? "Logo tổ chức:" : "Ảnh đại diện:"}
                 </label>
-                <div className="w-full h-11 flex items-center border border-gray-300 rounded-lg px-3 hover:scale-102 bg-white">
+                <div className="h-9 flex items-center border border-gray-300 rounded-lg hover:scale-102 bg-white ">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => setImage(e.target.files?.[0] || null)}
-                    className="w-full text-gray-600 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold"
+                    className=" text-gray-600 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold text-[12px]"
                   />
                 </div>
               </div>
             )}
-            <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 text-xl h-11" disabled={loading}>
+            <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 text-xl h-10" disabled={loading}>
               {loading ? "Đang xử lý..." : isLogin ? "Đăng nhập" : "Đăng ký"}
             </Button>
           </form>
-          <div className="text-center my-3 text-gray-500 text-lg">Hoặc đăng nhập với</div>
+          <div className="text-center my-3 text-gray-500 text-[14px]">Hoặc đăng nhập với</div>
           <div className="flex justify-center space-x-5">
             
             <Button
@@ -160,12 +160,12 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
                 const googleAuthUrl = `http://localhost:5000/auth/google?role=${encodeURIComponent(role)}`; // Gửi role đến backend
                 window.location.href = googleAuthUrl; // Chuyển hướng đến backend
               }}
-              className="flex items-center px-6 py-3 bg-gray-300 text-gray-800 text-lg hover:bg-gray-400 h-11 w-full"
+              className="flex items-center px-6 py-3 bg-gray-300 text-gray-800 text-lg hover:bg-gray-400 h-10 w-full"
             >
               <FcGoogle className="mr-2 text-2xl" /> Google
             </Button>
           </div>
-          <p className="text-center mt-4 text-lg">
+          <p className="text-center mt-4 text-[14px]">
             {isLogin ? "Bạn chưa có tài khoản?" : "Bạn đã có tài khoản?"}{" "}
             <span className="text-blue-500 cursor-pointer hover:underline ml-1" onClick={() => setIsLogin(!isLogin)}>
               {isLogin ? "Đăng ký ngay" : "Đăng nhập ngay"}

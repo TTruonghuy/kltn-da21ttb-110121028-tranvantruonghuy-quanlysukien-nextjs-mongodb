@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "@/app/components/auth/AuthFrom";
 import axios from "@/lib/axiosInstance";
-import Link from "next/link";
+import { TiHome, TiPlus } from "react-icons/ti";
+import Footer from "@/app/components/Footer"
+import Header from "@/app/components/Header"
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<{ email: string; name: string; avatar?: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; name: string; avatar?: string; role?:string } | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -20,7 +22,7 @@ export default function Home() {
         if (res.data && res.data.user) {
           setUser(res.data.user); // Đảm bảo user chứa name, email, và avatar
         } else {
-          //console.error("Invalid user data:");
+          console.error("Invalid user data:");
           setUser(null);
         }
       })
@@ -54,17 +56,18 @@ export default function Home() {
       document.removeEventListener("click", handleClickOutside);
     };
   }, []);
+  const listItemClass = "font-semibold flex text-[13px]";
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="bg-blue-200 text-white p-3 flex justify-between items-center">
-        <Image src="/logoweb.svg" alt="Logo" width={240} height={80} className="ml-20" />
+      {/* Header 
+      <header className="bg-blue-300 text-white p-3 flex justify-between items-center">
+        <Image src="/logoweb.svg" alt="Logo" width={200} height={0} className="ml-20" />
         <nav>
-          <ul className="flex space-x-10">
-            <li><a href="#" className="hover:underline">Trang chủ</a></li>
-            <li><a href="#" className="hover:underline">Page1</a></li>
-            <li><a href="#" className="hover:underline">Page2</a></li>
+          <ul className="flex space-x-20">
+            <li ><a href="#" className={listItemClass}><TiHome className=" w-4 h-5 mr-[3px]" /> TRANG CHỦ</a></li>
+            <li><a href="#" className={listItemClass}> Page1</a></li>
+            <li><a href="#" className={listItemClass}> <TiPlus className=" w-5 h-5.5 mr-[3px]" /> TẠO SỰ KIỆN</a></li>
           </ul>
         </nav>
         <div className="relative">
@@ -90,22 +93,26 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="relative mr-20 w-[122px] h-[30px] flex items-center justify-center group">
+            <div className="relative mr-20 w-[98px] h-[24px] flex items-center justify-center group">
               <div className="absolute inset-0 bg-[url('/boder-login.svg')] bg-center bg-contain transition group-hover:scale-109"></div>
               <button
                 onClick={() => setShowAuth(!showAuth)}
-                className="relative text-white text-center font-semibold group-active:scale-90 duration-150"
+                className="relative text-white text-center font-semibold text-[13px] group-active:scale-90 
+                duration-150"
               >
                 ĐĂNG NHẬP
               </button>
             </div>
           )}
         </div>
-      </header>
-
+      </header>*/}
+      <Header 
+      onLogout={handleLogout}
+      onShowAuth={() => setShowAuth(true)} 
+      user={user} />
       {/* Body */}
       <main className="flex-grow flex flex-col items-center justify-center bg-gray-100 text-center p-8">
-        <h1 className="text-3xl font-bold mb-6">Chào mừng {user?.name || "bạn"} đến với EzZone</h1>
+        <h1 className="text-3xl font-bold mb-6">Chào mừng {user?.name || "bạn"} </h1>
 
         {showAuth && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">
@@ -113,11 +120,7 @@ export default function Home() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-blue-600 text-white text-center p-4">
-        © 2025 EzZone. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

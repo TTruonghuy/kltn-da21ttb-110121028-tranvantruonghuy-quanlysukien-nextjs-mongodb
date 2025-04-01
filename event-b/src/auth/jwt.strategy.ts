@@ -21,6 +21,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!payload || !payload.sub || !payload.role || !payload.email) {
       throw new UnauthorizedException("Invalid JWT payload"); // Xử lý lỗi nếu payload không hợp lệ
     }
-    return { userId: payload.sub, role: payload.role, email: payload.email }; // Thêm email vào req.user
+    return {
+       userId: payload.sub,
+        role: payload.role,
+         email: payload.email }; // Thêm email vào req.user
   }
 }

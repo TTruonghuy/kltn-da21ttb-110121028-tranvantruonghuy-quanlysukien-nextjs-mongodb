@@ -46,14 +46,14 @@ export class AuthController {
     @Body() body: { email: string; password: string; role: string; name: string },
     @UploadedFile() image: Express.Multer.File,
   ) {
-    console.log("Register Request Body:", body); // Log thông tin request
-    console.log("Uploaded File:", image); // Log thông tin file upload
+    //console.log("Register Request Body:", body); // Log thông tin request
+   // console.log("Uploaded File:", image); // Log thông tin file upload
     return this.authService.register({ ...body, image });
   }
 
   @Post('login') // http://localhost:5000/auth/login
   @HttpCode(200)
-  async login(@Body() loginDto: { email: string; password: string }, @Res() res: Response) {
+  async login(@Body() loginDto: { email: string; password: string}, @Res() res: Response) {
     console.log("Login Request Body:", loginDto); // Log thông tin request
     if (!loginDto || !loginDto.email || !loginDto.password) {
       throw new Error("Invalid login data"); // Xử lý trường hợp dữ liệu không hợp lệ

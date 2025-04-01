@@ -1,0 +1,8 @@
+-đăng nhập, đăng ký (ok 31/3)
+-tạo sự kiện  x
+-xem danh sách sự kiện (sắp tới, đã qua, chờ duyệt, nháp)  x
+- chi tiết sự kiện ( số lượng ng đăng ký,..)
+-danh sách sự kiện, chi tiết sự kiện
+- đăng ký sự kiện
+- vé
+- đánh giá sự kiện

@@ -70,7 +70,7 @@ export class AuthService {
     }
   }
 
-  async login({ email, password }: { email: string; password: string }) {
+  async login({ email, password }: { email: string; password: string}) {
     try {
       const account = await this.accountService.findByEmail(email);
       if (!account) throw new Error("Tài khoản không tồn tại");
@@ -150,6 +150,7 @@ export class AuthService {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
+          role,
         };
       } else if (role === 'organizer') {
         const organizer = await this.organizerModel.findOne({ account_id: objectId }).exec();
@@ -158,6 +159,7 @@ export class AuthService {
           name: organizer.name,
           email: organizer.email,
           avatar: organizer.logo,
+          role,
         };
       }
 
