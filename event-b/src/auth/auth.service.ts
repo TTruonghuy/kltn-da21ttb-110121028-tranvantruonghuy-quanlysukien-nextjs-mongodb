@@ -109,14 +109,14 @@ export class AuthService {
             account_id: newAccount._id,
             name: user.name,
             email: user.email,
-            avatar: user.avatar,
+            avatar: user.avatar, // Lưu avatar từ Google
           });
         } else if (user.role === 'organizer') {
           await this.organizerModel.create({
             account_id: newAccount._id,
             name: user.name,
             email: user.email,
-            logo: user.avatar,
+            logo: user.avatar, // Lưu avatar từ Google
             events_created: 0,
           });
         }

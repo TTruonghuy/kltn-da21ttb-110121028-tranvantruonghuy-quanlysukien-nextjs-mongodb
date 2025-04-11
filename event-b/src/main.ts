@@ -5,6 +5,8 @@ import * as bodyParser from "body-parser";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Sử dụng cookie-parser để xử lý cookies
   app.use(cookieParser()); // Middleware để đọc cookie
   app.use(bodyParser.json()); // Xử lý JSON
   app.use(bodyParser.urlencoded({ extended: true })); // Xử lý URL-encoded

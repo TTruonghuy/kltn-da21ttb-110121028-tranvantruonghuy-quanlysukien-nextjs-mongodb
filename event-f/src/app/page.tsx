@@ -3,16 +3,18 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "@/app/components/auth/AuthFrom";
+import CreateEventForm from "@/app/components/event/CreateEventForm";
 import axios from "@/lib/axiosInstance";
 import { TiHome, TiPlus } from "react-icons/ti";
-import Footer from "@/app/components/Footer"
-import Header from "@/app/components/Header"
+import Footer from "@/app/components/Footer";
+import Header from "@/app/components/Header";
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<{ email: string; name: string; avatar?: string; role?:string } | null>(null);
+  const [user, setUser] = useState<{ email: string; name: string; avatar?: string; role?: string } | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
 
   // Fetch user data on mount
   useEffect(() => {
@@ -60,60 +62,32 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header 
-      <header className="bg-blue-300 text-white p-3 flex justify-between items-center">
-        <Image src="/logoweb.svg" alt="Logo" width={200} height={0} className="ml-20" />
-        <nav>
-          <ul className="flex space-x-20">
-            <li ><a href="#" className={listItemClass}><TiHome className=" w-4 h-5 mr-[3px]" /> TRANG CHỦ</a></li>
-            <li><a href="#" className={listItemClass}> Page1</a></li>
-            <li><a href="#" className={listItemClass}> <TiPlus className=" w-5 h-5.5 mr-[3px]" /> TẠO SỰ KIỆN</a></li>
-          </ul>
-        </nav>
-        <div className="relative">
-          {user ? (
-            <div className="flex items-center space-x-3 cursor-pointer menu-container" onClick={() => setMenuOpen(!menuOpen)}>
-              <img
-                src={user.avatar || "/default-avatar.png"}
-                alt="Avatar"
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-              <span className="font-semibold">{user.name}</span>
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Đăng xuất
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="relative mr-20 w-[98px] h-[24px] flex items-center justify-center group">
-              <div className="absolute inset-0 bg-[url('/boder-login.svg')] bg-center bg-contain transition group-hover:scale-109"></div>
-              <button
-                onClick={() => setShowAuth(!showAuth)}
-                className="relative text-white text-center font-semibold text-[13px] group-active:scale-90 
-                duration-150"
-              >
-                ĐĂNG NHẬP
-              </button>
-            </div>
-          )}
-        </div>
-      </header>*/}
-      <Header 
-      onLogout={handleLogout}
-      onShowAuth={() => setShowAuth(true)} 
-      user={user} />
+      <Header onLogout={handleLogout} onShowAuth={() => setShowAuth(true)} user={user} />
       {/* Body */}
       <main className="flex-grow flex flex-col items-center justify-center bg-gray-100 text-center p-8">
         <h1 className="text-3xl font-bold mb-6">Chào mừng {user?.name || "bạn"} </h1>
-
+        {user?.avatar && (
+          <div className="mb-4">
+            <img
+              src={user.avatar}
+              alt="Avatar"
+              className="w-24 h-24 rounded-full border border-gray-300"
+            />
+          </div>
+        )}
+        {user?.role === "organizer" && (
+          <button
+            onClick={() => setShowCreateEvent(true)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md"
+          >
+            Tạo sự kiện
+          </button>
+        )}
+        {showCreateEvent && (
+          <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">
+            <CreateEventForm onClose={() => setShowCreateEvent(false)} />
+          </div>
+        )}
         {showAuth && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">
             <AuthForm onClose={() => setShowAuth(false)} setUser={setUser} />

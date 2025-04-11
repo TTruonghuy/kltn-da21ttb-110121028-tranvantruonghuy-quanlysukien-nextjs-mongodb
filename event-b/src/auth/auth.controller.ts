@@ -8,10 +8,17 @@ import { Response, Request } from "express"; // Import Request từ express
 import { memoryStorage } from 'multer';
 import { extname } from 'path';
 
+// Mở rộng kiểu Request để bao gồm thuộc tính user
 export interface RequestWithUser extends Request {
-  user: any;
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+    name?: string;
+    avatar?: string;
+  };
   cookies: Record<string, string>;
-  query: Record<string, any>; // Thêm query vào định nghĩa
+  query: Record<string, any>;
 }
 
 @Controller('auth')
@@ -29,6 +36,7 @@ export class AuthController {
       throw new UnauthorizedException("Invalid user data from JWT"); // Xử lý lỗi nếu dữ liệu không hợp lệ
     }
     const user = await this.authService.getUserDetails(req.user.userId, req.user.role);
+    console.log("User Details:", user); // Log thông tin user trả về
     return { message: "Thông tin người dùng", user }; // Trả về thông tin đầy đủ
   }
 
@@ -116,12 +124,17 @@ export class AuthController {
         throw new Error('Role is missing in Google OAuth callback');
       }
 
-      // Thêm role vào req.user
-      req.user.role = role;
+      // Đảm bảo các thuộc tính name và avatar luôn có giá trị mặc định
+      const user = {
+        email: req.user.email,
+        name: req.user.name || "Google User", // Giá trị mặc định nếu thiếu
+        avatar: req.user.avatar || "", // Giá trị mặc định nếu thiếu
+        role,
+      };
 
-      console.log("Google Callback User:", req.user); // Log thông tin user từ Google
+      console.log("Google Callback User:", user); // Log thông tin user từ Google
 
-      const result = await this.authService.loginWithGoogle({ ...req.user });
+      const result = await this.authService.loginWithGoogle(user);
 
       res.cookie('jwt', result.accessToken, {
         httpOnly: true,

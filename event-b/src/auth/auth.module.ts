@@ -32,6 +32,6 @@ import { GoogleStrategy } from './google.strategy'; // Import GoogleStrategy
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, GoogleStrategy], // Thêm GoogleStrategy
-  exports: [AuthService],
+  exports: [AuthService, JwtModule], // Export JwtModule để các module khác có thể sử dụng
 })
 export class AuthModule {}
