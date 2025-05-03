@@ -14,3 +14,4 @@ event-management/logs
 # Loại trừ các file và thư mục chung
 .DS_Store
 .vscode/
+event-b/src/config/firebase-adminsdk.json
