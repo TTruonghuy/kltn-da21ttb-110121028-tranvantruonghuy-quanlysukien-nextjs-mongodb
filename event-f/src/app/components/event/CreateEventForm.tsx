@@ -7,39 +7,48 @@ import TinyMCEWrapper from "@/app/components/ui/TinyMCEWrapper";
 import VietnameseAddressSelector from "@/app/components/ui/VietnameseAddressSelector";
 import axios from "@/lib/axiosInstance";
 
+interface CreateEventFormProps {
+    formData: {
+        title: string;
+        description: string;
+        houseNumber: string; // Số nhà
+        ward: string; // Phường/Xã
+        district: string; // Quận/Huyện
+        province: string; // Tỉnh/Thành phố
+        location: string;
+        start_time: string;
+        end_time: string;
+        image: File | null;
+        event_type: string;
+    };
+    onFormDataChange: (data: Partial<CreateEventFormProps["formData"]>) => void;
+    onNext: () => void;
+}
 
-export default function CreateEventForm() {
-    const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        location: "",
-        start_time: "",
-        end_time: "",
-        image: null as File | null,
-    }); const originalConsoleError = console.error;
+export default function CreateEventForm({ formData, onFormDataChange, onNext }: CreateEventFormProps) {
 
 
     const [error, setError] = useState<string | null>(null);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        onFormDataChange({ [name]: value });
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
-        setFormData((prev) => ({ ...prev, image: file }));
+        onFormDataChange({ image: file });
     };
 
     const handleLocationChange = (address: string) => {
-        setFormData((prev) => ({ ...prev, location: address }));
+        onFormDataChange({ location: address });
     };
 
     const token = localStorage.getItem('token');
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.description || !formData.location || !formData.start_time || !formData.end_time) {   
+        if (!formData.title || !formData.description || !formData.location || !formData.start_time || !formData.end_time) {
             setError("Vui lòng điền đầy đủ thông tin bắt buộc.");
             return;
         }
@@ -52,6 +61,7 @@ export default function CreateEventForm() {
             formDataToSend.append("location", formData.location);
             formDataToSend.append("start_time", new Date(formData.start_time).toISOString());
             formDataToSend.append("end_time", new Date(formData.end_time).toISOString());
+            formDataToSend.append("event_type", formData.event_type);
             if (formData.image) {
                 formDataToSend.append("image", formData.image);
             } else {
@@ -134,13 +144,83 @@ export default function CreateEventForm() {
                     onChange={(value) => handleChange({ target: { name: "description", value } } as React.ChangeEvent<HTMLInputElement>)} />
             </div>
 
+            <div className="space-y-2">
+                <label className="font-medium text-gray-700 mb-2 flex">
+                    <TiPencil className="mt-1 mr-[2px]" /> Loại sự kiện <p className="text-red-700 pl-1">*</p>
+                </label>
+                <div className="flex space-x-4 justufy-center items-center">
+                    <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "âm nhạc" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
+                        <input
+                            type="radio"
+                            name="event_type"
+                            value="âm nhạc"
+                            checked={formData.event_type === "âm nhạc"}
+                            onChange={handleChange}
+                            required
+                            className="hidden"
+                        />
+                        <span className=" font-semibold">Âm nhạc</span>
+                    </label>
+
+                    <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "văn hóa nghệ thuật" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
+                        <input
+                            type="radio"
+                            name="event_type"
+                            value="văn hóa nghệ thuật"
+                            checked={formData.event_type === "văn hóa nghệ thuật"}
+                            onChange={handleChange}
+                            required
+                            className="hidden"
+                        />
+                        <span className=" font-semibold">Văn hóa nghệ thuật</span>
+                    </label>
+
+                    <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "thể thao" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
+                        <input
+                            type="radio"
+                            name="event_type"
+                            value="thể thao"
+                            checked={formData.event_type === "thể thao"}
+                            onChange={handleChange}
+                            required
+                            className="hidden"
+                        />
+                        <span className=" font-semibold">Thể thao</span>
+                    </label>
+
+                    <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "khác" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
+                        <input
+                            type="radio"
+                            name="event_type"
+                            value="khác"
+                            checked={formData.event_type === "khác"}
+                            onChange={handleChange}
+                            required
+                            className="hidden"
+                        />
+                        <span className=" font-semibold">Khác</span>
+                    </label>
+
+                </div>
+            </div>
+
             <div>
                 <label htmlFor="location" className="flex font-medium text-gray-700 mb-2">
                     <TiLocation className="mt-1 mr-[2px]" /> Địa điểm <p className="text-red-700 pl-1">*</p>
                 </label>
                 <VietnameseAddressSelector
-                    onAddressChange={handleLocationChange}
-                   // initialAddress={formData.location}
+                    houseNumber={formData.houseNumber}
+                    ward={formData.ward}
+                    district={formData.district}
+                    province={formData.province}
+                    onAddressChange={(data) => {
+                        onFormDataChange({
+                            houseNumber: data.houseNumber,
+                            ward: data.ward,
+                            district: data.district,
+                            province: data.province,
+                        });
+                    }}
                 />
             </div>
 
@@ -176,8 +256,9 @@ export default function CreateEventForm() {
 
             <div className="flex justify-end">
                 <Button
-                    type="submit"
+                    type="button"
                     className="bg-blue-500 hover:bg-blue-600 text-white py-3 h-10 flex"
+                    onClick={onNext}
                 >
                     Tiếp tục
                 </Button>

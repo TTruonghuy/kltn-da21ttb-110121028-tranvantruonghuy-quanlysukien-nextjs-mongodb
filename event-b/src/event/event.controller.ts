@@ -30,6 +30,7 @@ export class EventController {
       location: string;
       start_time: Date;
       end_time: Date
+      event_type: string;
     },
     @UploadedFile() image: Express.Multer.File, // Nhận file upload
     @Req() req: RequestWithUser, // Sử dụng RequestWithUser

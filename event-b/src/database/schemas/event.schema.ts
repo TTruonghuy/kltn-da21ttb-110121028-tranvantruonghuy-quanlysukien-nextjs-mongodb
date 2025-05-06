@@ -28,6 +28,9 @@ export class Event {
 
   @Prop({ default: 'pending', enum: ['pending', 'approved', 'rejected'] })
   status: string;
+  
+  @Prop({ required: true, enum: ['âm nhạc', 'văn hóa nghệ thuật', 'thể thao', 'khác'] })
+  event_type: string;
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);

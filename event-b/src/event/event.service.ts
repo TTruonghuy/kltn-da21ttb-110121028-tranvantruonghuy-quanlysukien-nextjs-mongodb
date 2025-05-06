@@ -14,6 +14,7 @@ export class EventService {
     location: string; 
     start_time: Date; 
     end_time: Date; 
+    event_type: string;
     image?: string }) {
     try {
       const event = new this.eventModel({

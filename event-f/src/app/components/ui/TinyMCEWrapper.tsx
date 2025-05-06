@@ -18,21 +18,14 @@ export default function TinyMCEWrapper({ value, onChange, className }: TinyMCEWr
         onInit={(evt, editor) => (editorRef.current = editor)}
         value={value}
         onEditorChange={onChange}
-        
+
         init={{
           height: 300,
           menubar: false,
           //statusbar: false,
           branding: false,
-          plugins: [
-            "advlist autolink lists link image charmap print preview anchor",
-            "searchreplace visualblocks code fullscreen",
-            "insertdatetime media table paste code help wordcount",
-          ],
-          toolbar:
-            "undo redo | formatselect | bold italic backcolor | \
-            alignleft aligncenter alignright alignjustify | \
-            bullist numlist outdent indent | removeformat | help",
+          plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+          toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
         }}
       />
     </div>

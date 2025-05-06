@@ -3,17 +3,8 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { TiTicket } from "react-icons/ti";
 
-export default function CreateTicketForm({
-    formData,
-    setFormData,
-    initialData,
-    onTicketDataChange,
-    onBack,
-    onSubmit,
-}: {
-    formData: { eventName: string; address: string; ticketName: string; ticketPrice: number };
-    setFormData: React.Dispatch<React.SetStateAction<typeof formData>>;
-    initialData: {
+interface CreateTicketFormProps {
+    formData: {
         ticketName: string;
         ticketPrice: number;
         ticketQuantity: number;
@@ -22,22 +13,19 @@ export default function CreateTicketForm({
         saleStartTime: string;
         saleEndTime: string;
     };
-    onTicketDataChange: (data: Partial<typeof initialData>) => void;
+    onFormDataChange: (data: Partial<CreateTicketFormProps["formData"]>) => void;
     onBack: () => void;
-    onSubmit: () => Promise<void>;
-}) {
+    onSubmit: () => void;
+}
+
+export default function CreateTicketForm({ formData, onFormDataChange, onBack, onSubmit }: CreateTicketFormProps) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSubmit();
+        onFormDataChange({ [name]: value });
     };
 
     return (
-        <form className="space-y-10" onSubmit={handleSubmit}>
+        <form className="space-y-10">
             <h2 className="text-xl font-bold mb-4">Thông tin vé</h2>
             <div>
                 <label htmlFor="ticketName" className="font-medium text-gray-700 mb-2">

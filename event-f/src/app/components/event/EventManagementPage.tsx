@@ -7,28 +7,26 @@ import axios from "@/lib/axiosInstance";
 
 export default function EventManagementPage() {
     const [activeTab, setActiveTab] = useState("create-event"); // Tab mặc định là "Tạo sự kiện"
-    const [user, setUser] = useState<{ email: string; name: string; avatar?: string; role?: string } | null>(null);
+    const [user, setUser] = useState<{
+        email: string;
+        name: string;
+        avatar?: string;
+        role?: string
+    } | null>(null);
 
-    // Shared state object for both forms
     const [formData, setFormData] = useState({
-        eventName: "",
-        address: "",
-        ticketName: "", // Ensure ticketName is initialized
-        ticketPrice: 0, // Ensure ticketPrice is initialized
-    });
-
-    // State để lưu dữ liệu sự kiện
-    const [eventData, setEventData] = useState({
         title: "",
         description: "",
-        location: "",
+        houseNumber: "", // Số nhà
+        ward: "", // Phường/Xã
+        district: "", // Quận/Huyện
+        location: "", // Địa điểm
+        province: "",
         start_time: "",
         end_time: "",
         image: null as File | null,
-    });
+        event_type: "",
 
-    // State để lưu dữ liệu vé
-    const [ticketData, setTicketData] = useState({
         ticketName: "",
         ticketPrice: 0,
         ticketQuantity: 0,
@@ -38,44 +36,9 @@ export default function EventManagementPage() {
         saleEndTime: "",
     });
 
-    // Callback để cập nhật dữ liệu sự kiện
-    const handleEventDataChange = (data: Partial<typeof eventData>) => {
-        setEventData((prev) => ({ ...prev, ...data }));
-    };
-
-    // Callback để cập nhật dữ liệu vé
-    const handleTicketDataChange = (data: Partial<typeof ticketData>) => {
-        setTicketData((prev) => ({ ...prev, ...data }));
-    };
-
-    // Gửi toàn bộ dữ liệu lên backend khi nhấn "Hoàn tất"
-    const handleSubmit = async () => {
-        try {
-            const formData = new FormData();
-            Object.entries(eventData).forEach(([key, value]) => {
-                if (value) formData.append(key, value as string | Blob);
-            });
-
-            const eventResponse = await axios.post("/event/create", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            const eventId = eventResponse.data.id;
-
-            const ticketPayload = {
-                ...ticketData,
-                event_id: eventId,
-            };
-
-            await axios.post("/ticket/create", ticketPayload, {
-                withCredentials: true,
-            });
-
-            alert("Sự kiện và vé đã được tạo thành công!");
-        } catch (error) {
-            console.error("Error:", error.response?.data || error.message);
-            alert(error.response?.data?.message || "Có lỗi xảy ra");
-        }
+    // Hàm cập nhật dữ liệu form
+    const handleFormDataChange = (data: Partial<typeof formData>) => {
+        setFormData((prev) => ({ ...prev, ...data }));
     };
 
     // Fetch user data on mount
@@ -108,33 +71,30 @@ export default function EventManagementPage() {
                 }}
                 onShowAuth={() => console.log("Show Auth")}
             />
-            <div className="flex flex-grow">
-                <nav className="w-64 h-[510px] bg-blue-200 flex flex-col p-4 rounded-lg m-5 fixed top-25">
+            <div className="flex flex-grow bg-blue-200">
+                <nav className="w-64 h-[510px] bg-white flex flex-col p-4 rounded-lg m-5 fixed top-25">
                     <button
                         onClick={() => setActiveTab("create-event")}
-                        className={`py-2 px-4 mb-2 text-left rounded ${
-                            activeTab === "create-event" ? "bg-blue-400 text-white" : "hover:bg-blue-400"
-                        }`}
+                        className={`py-2 px-4 mb-2 text-left rounded ${activeTab === "create-event" ? "bg-blue-400 text-white" : "hover:bg-blue-400"
+                            }`}
                     >
                         Tạo sự kiện
                     </button>
                 </nav>
-                <main className="flex-grow p-14 pt-4 bg-blue-100 rounded-lg mt-30 mr-5 mb-5 ml-[300px]">
+                <main className="flex-grow p-14 pt-4 bg-white rounded-lg mt-30 mr-5 mb-5 ml-[300px]">
                     {activeTab === "create-event" && (
-                        <CreateEventForm
-                            initialData={eventData}
-                            onEventDataChange={handleEventDataChange}
-                            onNext={() => setActiveTab("create-ticket")}
-                        />
+                      <CreateEventForm
+                      formData={formData}
+                      onFormDataChange={handleFormDataChange}
+                      onNext={() => setActiveTab("create-ticket")}
+                  />
                     )}
                     {activeTab === "create-ticket" && (
                         <CreateTicketForm
                             formData={formData}
-                            setFormData={setFormData}
-                            initialData={ticketData}
-                            onTicketDataChange={handleTicketDataChange}
+                            onFormDataChange={handleFormDataChange}
                             onBack={() => setActiveTab("create-event")}
-                            onSubmit={handleSubmit}
+                            onSubmit={() => console.log("Submit")}
                         />
                     )}
                 </main>

@@ -3,10 +3,23 @@ import data from "./vietnam-provinces.json"; // Import file JSON
 import { TiArrowSortedDown } from "react-icons/ti";
 
 interface VietnameseAddressSelectorProps {
-  onAddressChange: (address: string) => void;
+  houseNumber: string;
+  ward: string;
+  district: string;
+  province: string;
+  onAddressChange: (data: {
+      houseNumber: string;
+      ward: string;
+      district: string;
+      province: string;
+  }) => void;
 }
 
-export default function VietnameseAddressSelector({ onAddressChange }: VietnameseAddressSelectorProps) {
+export default function VietnameseAddressSelector({
+  houseNumber,
+  ward,
+  district,
+  province, onAddressChange }: VietnameseAddressSelectorProps) {
   const [provinces, setProvinces] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [wards, setWards] = useState<any[]>([]);
@@ -16,7 +29,7 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
-  const [houseNumber, setHouseNumber] = useState("");
+  const [localHouseNumber, setLocalHouseNumber] = useState(houseNumber || "");
   const [showProvinceMenu, setShowProvinceMenu] = useState(false);
   const [showDistrictMenu, setShowDistrictMenu] = useState(false);
   const [showWardMenu, setShowWardMenu] = useState(false);
@@ -30,6 +43,10 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
     setProvinces(data);
     setFilteredProvinces(data);
   }, []);
+
+  useEffect(() => {
+    setLocalHouseNumber(houseNumber || "");
+  }, [houseNumber]);
 
   useEffect(() => {
     // Load districts based on selected province
@@ -56,18 +73,14 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
     }
   }, [selectedDistrict]);
 
-  useEffect(() => {
-    // Generate full address when all fields are selected
-    const address = `${houseNumber}${houseNumber ? ", " : ""}${selectedWard ? `Phường/Xã ${selectedWard}, ` : ""}${
-      selectedDistrict ? `Quận/Huyện ${selectedDistrict}, ` : ""
-    }${selectedProvince ? `Tỉnh/Thành phố ${selectedProvince}` : ""}`;
-    onAddressChange(address);
-  }, [houseNumber, selectedProvince, selectedDistrict, selectedWard, onAddressChange]);
+  
 
   const handleFilter = (input: string, list: any[], setFilteredList: (list: any[]) => void) => {
     const filtered = list.filter((item) => item.name.toLowerCase().includes(input.toLowerCase()));
     setFilteredList(filtered);
   };
+
+  
 
   const handleClickOutside = (event: MouseEvent) => {
     if (
@@ -91,6 +104,102 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
     };
   }, []);
 
+  useEffect(() => {
+    // Load provinces from JSON or API
+    setProvinces(data);
+}, []);
+
+useEffect(() => {
+    if (province) {
+        const selectedProvince = data.find((p: any) => p.name === province);
+        setDistricts(selectedProvince ? selectedProvince.districts : []);
+    }
+}, [province]);
+
+useEffect(() => {
+    if (district) {
+        const selectedDistrict = districts.find((d: any) => d.name === district);
+        setWards(selectedDistrict ? selectedDistrict.wards : []);
+    }
+}, [district]);
+
+useEffect(() => {
+  // Đồng bộ giá trị từ props vào state
+  if (province && province !== selectedProvince) {
+    setSelectedProvince(province);
+    const selectedProvinceData = data.find((p: any) => p.name === province);
+    const districts = selectedProvinceData ? selectedProvinceData.districts : [];
+    setDistricts(districts);
+    setFilteredDistricts(districts);
+  }
+
+  if (district && district !== selectedDistrict) {
+    setSelectedDistrict(district);
+    const selectedDistrictData = districts.find((d: any) => d.name === district);
+    const wards = selectedDistrictData ? selectedDistrictData.wards : [];
+    setWards(wards);
+    setFilteredWards(wards);
+  }
+
+  if (ward && ward !== selectedWard) {
+    setSelectedWard(ward);
+  }
+}, [province, district, ward, selectedProvince, selectedDistrict, selectedWard]);
+
+const handleProvinceChange = (value: string) => {
+  setSelectedProvince(value);
+  setSelectedDistrict("");
+  setSelectedWard("");
+  setDistricts([]);
+  setWards([]);
+  setFilteredDistricts([]);
+  setFilteredWards([]);
+
+  // Gọi onAddressChange sau khi cập nhật state
+  onAddressChange({
+    houseNumber: localHouseNumber,
+    ward: "",
+    district: "",
+    province: value,
+  });
+};
+
+const handleDistrictChange = (value: string) => {
+  setSelectedDistrict(value);
+  setSelectedWard(""); // Reset phường/xã khi thay đổi quận/huyện
+  setWards([]); // Reset danh sách phường/xã
+  const updatedAddress = {
+    houseNumber: localHouseNumber,
+    ward: "",
+    district: value,
+    province: selectedProvince,
+  };
+  console.log("Updated Address (District):", updatedAddress);
+  onAddressChange(updatedAddress);
+};
+
+const handleWardChange = (value: string) => {
+  setSelectedWard(value);
+  const updatedAddress = {
+    houseNumber: localHouseNumber,
+    ward: value,
+    district: selectedDistrict,
+    province: selectedProvince,
+  };
+  console.log("Updated Address (Ward):", updatedAddress);
+  onAddressChange(updatedAddress);
+};
+
+const handleHouseNumberChange = (value: string) => {
+  setLocalHouseNumber(value);
+  onAddressChange({ houseNumber: value, ward: selectedWard, district: selectedDistrict, province: selectedProvince });
+};
+
+
+useEffect(() => {
+  console.log("Props on render:", { houseNumber, province, district, ward });
+}, [houseNumber, province, district, ward]);
+
   return (
     <div className="border border-gray-300 rounded-lg p-4 space-y-4">
       <div className="flex space-x-6">
@@ -101,10 +210,10 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
               type="text"
               placeholder="Nhập Tỉnh/Thành phố"
               value={selectedProvince}
-              className="h-9 w-full bg-white rounded-md p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="border border-gray-300 h-9 w-full bg-white rounded-md p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               onFocus={() => setShowProvinceMenu(true)}
               onChange={(e) => {
-                setSelectedProvince(e.target.value);
+                handleProvinceChange(e.target.value);
                 handleFilter(e.target.value, provinces, setFilteredProvinces);
               }}
             />
@@ -117,7 +226,19 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
                   key={province.name}
                   onClick={() => {
                     setSelectedProvince(province.name);
-                    setShowProvinceMenu(false);
+    setSelectedDistrict("");
+    setSelectedWard("");
+    setDistricts([]);
+    setWards([]);
+    setFilteredDistricts([]);
+    setFilteredWards([]);
+    setShowProvinceMenu(false);
+    onAddressChange({
+      houseNumber: localHouseNumber,
+      ward: "",
+      district: "",
+      province: province.name,
+    });
                   }}
                   className={`p-2 cursor-pointer hover:bg-gray-100 ${
                     selectedProvince === province.name ? "bg-blue-100" : ""
@@ -137,10 +258,10 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
               type="text"
               placeholder="Nhập Quận/Huyện"
               value={selectedDistrict}
-              className="h-9 w-full bg-white rounded-md p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="border border-gray-300 h-9 w-full bg-white rounded-md p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               onFocus={() => selectedProvince && setShowDistrictMenu(true)}
               onChange={(e) => {
-                setSelectedDistrict(e.target.value);
+                handleDistrictChange(e.target.value);
                 handleFilter(e.target.value, districts, setFilteredDistricts);
               }}
               disabled={!selectedProvince}
@@ -150,11 +271,16 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
           {showDistrictMenu && (
             <ul className="absolute z-10 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full">
               {filteredDistricts.map((district) => (
-                <li
-                  key={district.name}
+                <li key={district.name}
                   onClick={() => {
                     setSelectedDistrict(district.name);
                     setShowDistrictMenu(false);
+                    onAddressChange({
+                      houseNumber: localHouseNumber,
+                      ward: "",
+                      district: district.name,
+                      province: selectedProvince,
+                    });
                   }}
                   className={`p-2 cursor-pointer hover:bg-gray-100 ${
                     selectedDistrict === district.name ? "bg-blue-100" : ""
@@ -176,10 +302,10 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
               type="text"
               placeholder="Nhập Phường/Xã"
               value={selectedWard}
-              className="h-9 w-full bg-white rounded-md p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="border border-gray-300 h-9 w-full bg-white rounded-md p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               onFocus={() => selectedDistrict && setShowWardMenu(true)}
               onChange={(e) => {
-                setSelectedWard(e.target.value);
+                handleWardChange(e.target.value);
                 handleFilter(e.target.value, wards, setFilteredWards);
               }}
               disabled={!selectedDistrict}
@@ -194,6 +320,12 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
                   onClick={() => {
                     setSelectedWard(ward.name);
                     setShowWardMenu(false);
+                    onAddressChange({
+                      houseNumber: localHouseNumber,
+                      ward: ward.name,
+                      district: selectedDistrict,
+                      province: selectedProvince,
+                    });
                   }}
                   className={`p-2 cursor-pointer hover:bg-gray-100 ${
                     selectedWard === ward.name ? "bg-blue-100" : ""
@@ -211,9 +343,9 @@ export default function VietnameseAddressSelector({ onAddressChange }: Vietnames
           <input
             type="text"
             value={houseNumber}
-            onChange={(e) => setHouseNumber(e.target.value)}
+            onChange={(e) => handleHouseNumberChange(e.target.value)}
             placeholder="Nhập số nhà và tên đường"
-            className="h-9 w-full bg-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="border border-gray-300 h-9 w-full bg-white rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
       </div>
