@@ -1,17 +1,37 @@
-import { Controller, Post, Body, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { EventService } from './event.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestWithUser } from '../auth/auth.controller'; // Import RequestWithUser
 import { Response } from 'express';
+import { memoryStorage } from 'multer';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { bucket } from 'src/config/firebase.config';
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(private readonly eventService: EventService) { }
 
   @Post('create')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('image', {
+    storage: memoryStorage(), // Sử dụng memoryStorage để lưu file trong bộ nhớ
+    fileFilter: (req, file, callback) => {
+      if (!file.mimetype.startsWith('image/')) {
+        return callback(new Error('Only image files are allowed!'), false);
+      }
+      callback(null, true);
+    },
+  }))
+
   async createEvent(
-    @Body() body: { title: string; description: string; location: string; start_time: Date; end_time: Date; image?: string },
+    @Body() body: {
+      title: string;
+      description: string;
+      location: string;
+      start_time: Date;
+      end_time: Date
+    },
+    @UploadedFile() image: Express.Multer.File, // Nhận file upload
     @Req() req: RequestWithUser, // Sử dụng RequestWithUser
     @Res() res: Response,
   ) {
@@ -21,11 +41,44 @@ export class EventController {
         return res.status(403).send({ message: 'Unauthorized' });
       }
 
-      const event = await this.eventService.createEvent({ ...body, organizer_id: organizerId });
+    let imageUrl = '';
+    if (image && image.buffer) {
+      try {
+        const fileName = `event/${Date.now()}-${image.originalname}`;
+        const file = bucket.file(fileName);
+
+        console.log('Uploading file to Firebase:', fileName);
+
+        await file.save(image.buffer, {
+          metadata: {
+            contentType: image.mimetype,
+          },
+          predefinedAcl: 'publicRead',
+        });
+    
+        const [url] = await file.getSignedUrl({
+          action: 'read',
+          expires: '03-01-2030',
+        });
+        imageUrl = url;
+        console.log('File uploaded successfully. URL:', imageUrl);
+      } catch (error) {
+        console.error('Error uploading image to Firebase:', error);
+        throw new Error('Failed to upload image');
+      }
+    }
+
+      const event = await this.eventService.createEvent({ 
+        ...body, 
+        image: imageUrl, // Lưu URL của ảnh vào cơ sở dữ liệu
+        organizer_id: organizerId 
+      });
       return res.status(201).send({ message: 'Event created successfully', event });
     } catch (error) {
-      console.error('Create Event Error:', error.message);
+      console.log("Request body:", body);
+      console.error('Create Event Error:', error);
+
       return res.status(500).send({ message: 'Internal Server Error', error: error.message });
     }
   }
-}
+};
