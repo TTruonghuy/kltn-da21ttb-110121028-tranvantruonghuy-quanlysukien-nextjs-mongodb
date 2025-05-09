@@ -55,8 +55,8 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
             <img
               src={user.avatar || "/default-avatar.png"}
               alt="Avatar"
-              width={40}
-              height={40}
+              width={30}
+              height={30}
               className="rounded-full"
             />
             <span className="font-semibold">{user.name}</span>

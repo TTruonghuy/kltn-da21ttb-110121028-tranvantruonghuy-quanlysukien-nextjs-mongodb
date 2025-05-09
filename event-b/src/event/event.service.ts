@@ -27,4 +27,17 @@ export class EventService {
       throw error;
     }
   }
+
+  async getEvents(filter?: { event_type?: string }): Promise<Event[]> {
+    try {
+      const query = filter?.event_type ? { event_type: filter.event_type } : {};
+      return await this.eventModel.find(query).exec();
+    } catch (error) {
+      console.error('Get Events Error:', error);
+      throw error;
+    }
+  }
+
+  
+
 }

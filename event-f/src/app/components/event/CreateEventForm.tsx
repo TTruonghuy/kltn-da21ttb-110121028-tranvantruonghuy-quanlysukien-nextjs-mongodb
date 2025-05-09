@@ -45,47 +45,10 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
     };
 
     const token = localStorage.getItem('token');
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!formData.title || !formData.description || !formData.location || !formData.start_time || !formData.end_time) {
-            setError("Vui lòng điền đầy đủ thông tin bắt buộc.");
-            return;
-        }
-
-        try {
-
-            const formDataToSend = new FormData();
-            formDataToSend.append("title", formData.title);
-            formDataToSend.append("description", formData.description);
-            formDataToSend.append("location", formData.location);
-            formDataToSend.append("start_time", new Date(formData.start_time).toISOString());
-            formDataToSend.append("end_time", new Date(formData.end_time).toISOString());
-            formDataToSend.append("event_type", formData.event_type);
-            if (formData.image) {
-                formDataToSend.append("image", formData.image);
-            } else {
-                console.error("No image selected");
-            }
-            console.log("FormData to send:", Object.fromEntries(formDataToSend.entries()));
-            const response = await axios.post("/event/create", formDataToSend, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    Authorization: `Bearer ${token}`, // Thay `token` bằng JWT hợp lệ
-                },
-            });
-
-            //console.log("FormData to send:", Object.fromEntries(formDataToSend.entries()));
-            alert("Sự kiện đã được tạo thành công!");
-            console.log("Response:", response.data);
-        } catch (err: any) {
-            console.error("Error creating event:", err.response?.data || err.message);
-            setError(err.response?.data?.message || "Có lỗi xảy ra khi tạo sự kiện.");
-        }
-    };
+    
 
     return (
-        <form className="space-y-10" onSubmit={handleSubmit}>
+        <form className="space-y-10" >
             <h2 className="text-xl font-bold mb-4">Thông tin sự kiện </h2>
             {error && <p className="text-red-500">{error}</p>}
             <div>

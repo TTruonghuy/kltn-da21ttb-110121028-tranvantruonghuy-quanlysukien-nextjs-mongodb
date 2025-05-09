@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Res, UseInterceptors, UploadedFile, Get } from '@nestjs/common';
 import { EventService } from './event.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestWithUser } from '../auth/auth.controller'; // Import RequestWithUser
@@ -6,10 +6,26 @@ import { Response } from 'express';
 import { memoryStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { bucket } from 'src/config/firebase.config';
+import { Query } from '@nestjs/common';
 
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService) { }
+
+ @Get('list')
+  async getEvents(
+    @Res() res: Response,
+    @Query('event_type') eventType?: string, // Lọc theo loại sự kiện nếu cần
+    
+  ) {
+    try {
+      const events = await this.eventService.getEvents(eventType ? { event_type: eventType } : {});
+      return res.status(200).send(events);
+    } catch (error) {
+      console.error('Get Events Error:', error);
+      return res.status(500).send({ message: 'Internal Server Error', error: error.message });
+    }
+  }
 
   @Post('create')
   @UseGuards(JwtAuthGuard)
@@ -82,4 +98,8 @@ export class EventController {
       return res.status(500).send({ message: 'Internal Server Error', error: error.message });
     }
   }
+
+ 
+
+
 };

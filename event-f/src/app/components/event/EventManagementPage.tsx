@@ -34,6 +34,10 @@ export default function EventManagementPage() {
         maxPerOrder: 5,
         saleStartTime: "",
         saleEndTime: "",
+        description_ticket: "", // Thêm trường mô tả
+        image_ticket: null as File | null, // Thêm trường ảnh
+        
+        noSale: false, // Thêm trường không bán vé
     });
 
     // Hàm cập nhật dữ liệu form
@@ -94,7 +98,16 @@ export default function EventManagementPage() {
                             formData={formData}
                             onFormDataChange={handleFormDataChange}
                             onBack={() => setActiveTab("create-event")}
-                            onSubmit={() => console.log("Submit")}
+                            onSubmit={() => {
+                                if (formData.noSale) {
+                                    // Nếu không mở bán vé, chỉ tạo sự kiện
+                                    console.log("Chỉ tạo sự kiện, không tạo vé");
+                                    // Gọi API tạo sự kiện tại đây
+                                } else {
+                                    console.log("Tạo vé và sự kiện");
+                                    // Gọi API tạo vé tại đây
+                                }
+                            }}
                         />
                     )}
                 </main>

@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import AuthForm from "@/app/components/auth/AuthFrom";
 import CreateEventForm from "@/app/components/event/CreateEventForm";
 import axios from "@/lib/axiosInstance";
-import { TiHome, TiPlus } from "react-icons/ti";
 import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
+import EventList from "@/app/components/event/EventList";
 
 export default function Home() {
   const router = useRouter();
@@ -64,35 +64,21 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Header onLogout={handleLogout} onShowAuth={() => setShowAuth(true)} user={user} />
       {/* Body */}
-      <main className="flex-grow flex flex-col items-center justify-center bg-gray-100 text-center p-8">
-        <h1 className="text-3xl font-bold mb-6">Chào mừng {user?.name || "bạn"} </h1>
-        {user?.avatar && (
-          <div className="mb-4">
-            <img
-              src={user.avatar}
-              alt="Avatar"
-              className="w-24 h-24 rounded-full border border-gray-300"
-            />
-          </div>
-        )}
-        {user?.role === "organizer" && (
-          <button
-            onClick={() => setShowCreateEvent(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md"
-          >
-            Tạo sự kiện
-          </button>
-        )}
+      <main className="flex-grow flex flex-col items-center justify-center bg-blue-100 text-center pt-8 pb-8">
         {showCreateEvent && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">
             <CreateEventForm onClose={() => setShowCreateEvent(false)} />
           </div>
         )}
         {showAuth && (
-          <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">
+          <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)] z-41">
             <AuthForm onClose={() => setShowAuth(false)} setUser={setUser} />
           </div>
         )}
+
+        
+        <EventList filterType="văn hóa nghệ thuật" />
+       
       </main>
       <Footer />
     </div>
