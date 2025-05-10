@@ -59,13 +59,13 @@ export default function CreateTicketForm({
         onFormDataChange({ noSale: e.target.checked });
     };
 
- 
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             const fullLocation = `${formData.houseNumber}, ${formData.ward}, ${formData.district}, ${formData.province}`;
             const formDataToSend = new FormData();
-    
+
             // Gửi thông tin sự kiện
             formDataToSend.append("title", formData.title);
             formDataToSend.append("description", formData.description);
@@ -76,7 +76,7 @@ export default function CreateTicketForm({
             if (formData.image) {
                 formDataToSend.append("image", formData.image);
             }
-    
+
             // Nếu chọn "Không mở bán vé", chỉ tạo sự kiện
             if (formData.noSale) {
                 const response = await axios.post("http://localhost:5000/event/create", formDataToSend, {
@@ -90,7 +90,7 @@ export default function CreateTicketForm({
                 onSubmit(); // Gọi callback khi thành công
                 return;
             }
-    
+
             // Nếu mở bán vé, tạo sự kiện trước, sau đó tạo vé
             const eventResponse = await axios.post("http://localhost:5000/event/create", formDataToSend, {
                 headers: {
@@ -100,9 +100,9 @@ export default function CreateTicketForm({
                 withCredentials: true, // Gửi cookie cùng với yêu cầu
             });
             console.log("Event created successfully:", eventResponse.data);
-    
+
             const eventId = eventResponse.data._id; // Lấy ID sự kiện từ phản hồi
-    
+
             // Gửi thông tin vé
             const ticketFormData = new FormData();
             ticketFormData.append("event_id", eventId); // Liên kết vé với sự kiện
@@ -117,7 +117,7 @@ export default function CreateTicketForm({
             if (formData.image_ticket) {
                 ticketFormData.append("image_ticket", formData.image_ticket);
             }
-    
+
             const ticketResponse = await axios.post("http://localhost:5000/ticket/create", ticketFormData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -155,7 +155,6 @@ export default function CreateTicketForm({
                 <>
                     <div>
                         <label htmlFor="ticketName" className="font-medium text-gray-700 mb-2">
-
                             Tên vé
                         </label>
                         <Input
@@ -169,52 +168,51 @@ export default function CreateTicketForm({
                     </div>
 
                     <div className="flex">
-                        <div className="w-60">
-                            <div className="mb-10">
-                                <label htmlFor="ticketPrice" className="font-medium text-gray-700 mb-2">
-                                    Giá vé
-                                </label>
+
+                        <div className="mr-21 w-30">
+                            <label htmlFor="ticketPrice" className="font-medium text-gray-700 mb-2">
+                                Giá vé
+                            </label>
+                            <div className="flex items-end">
                                 <Input
                                     id="ticketPrice"
                                     name="ticketPrice"
-                                    type="number"
-                                    value={formData.ticketPrice || 0}
-                                    onChange={handleChange}
+                                    type="text"
+                                    pattern="[0-9.]*"
+                                    inputMode="numeric"
+                                    value={formData.ticketPrice
+                                        ? formData.ticketPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                                        : ""
+                                    }
+                                    onChange={e => {
+                                        let raw = e.target.value.replace(/\D/g, "");
+                                        raw = raw.replace(/^0+/, "");
+                                        onFormDataChange({ ticketPrice: raw === "" ? 0 : Number(raw) });
+                                    }}
                                     required
-                                />
-                            </div>
-
-                            <div>
-                                <label htmlFor="ticketQuantity" className="font-medium text-gray-700 mb-2">
-                                    Số lượng vé
-                                </label>
-                                <Input
-                                    id="ticketQuantity"
-                                    name="ticketQuantity"
-                                    type="number"
-                                    value={formData.ticketQuantity || 0}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
+                                /><p className="ml-2">đ</p></div>
                         </div>
 
-                        <div className=" ml-10">
-                            <label htmlFor="description_ticket" className="font-medium text-gray-700 mb-2 mr-2">
-                                Mô tả
+
+                        <div className="mr-21 w-30">
+                            <label htmlFor="ticketQuantity" className="font-medium text-gray-700 mb-2">
+                                Số lượng vé
                             </label>
-                            <textarea
-                                className=" w-160 h-34 rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 hover:scale-101"
-                                id="description_ticket"
-                                name="description_ticket"
-                                value={formData.description_ticket || ""}
-                                onChange={handleChange}>
-                            </textarea>
+                            <Input
+                                id="ticketQuantity"
+                                name="ticketQuantity"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={formData.ticketQuantity === 0 ? "" : formData.ticketQuantity}
+                                onChange={e => {
+                                    let raw = e.target.value.replace(/\D/g, "");
+                                    raw = raw.replace(/^0+/, "");
+                                    onFormDataChange({ ticketQuantity: raw === "" ? 0 : Number(raw) });
+                                }}
+                                required
+                            />
                         </div>
-                    </div>
-
-
-                    <div className="flex">
                         <div className="w-56">
                             <label htmlFor="minPerOrder" className="font-medium text-gray-700 mb-2">
                                 Số lượng tối thiểu mỗi lần đặt
@@ -222,55 +220,83 @@ export default function CreateTicketForm({
                             <Input
                                 id="minPerOrder"
                                 name="minPerOrder"
-                                type="number"
-                                value={formData.minPerOrder || 0}
-                                onChange={handleChange}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={formData.minPerOrder === 0 ? "" : formData.minPerOrder}
+                                onChange={e => {
+                                    let raw = e.target.value.replace(/\D/g, "");
+                                    raw = raw.replace(/^0+/, "");
+                                    onFormDataChange({ minPerOrder: raw === "" ? 0 : Number(raw) });
+                                }}
                                 required
                             />
                         </div>
 
-                        <div className="ml-10">
+                        <div className="ml-21">
                             <label htmlFor="maxPerOrder" className="font-medium text-gray-700 mb-2">
                                 Số lượng tối đa mỗi lần đặt
                             </label>
                             <Input
                                 id="maxPerOrder"
                                 name="maxPerOrder"
-                                type="number"
-                                value={formData.maxPerOrder || 0}
-                                onChange={handleChange}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={formData.maxPerOrder === 0 ? "" : formData.maxPerOrder}
+                                onChange={e => {
+                                    let raw = e.target.value.replace(/\D/g, "");
+                                    raw = raw.replace(/^0+/, "");
+                                    onFormDataChange({ maxPerOrder: raw === "" ? 0 : Number(raw) });
+                                }}
                                 required
                             />
                         </div>
                     </div>
 
                     <div className="flex">
-                        <div className="w-56">
-                            <label htmlFor="saleStartTime" className="font-medium text-gray-700 mb-2">
-                                Thời gian bắt đầu bán
-                            </label>
-                            <Input
-                                id="saleStartTime"
-                                name="saleStartTime"
-                                type="datetime-local"
-                                value={formData.saleStartTime || ""}
-                                onChange={handleChange}
-                                required
-                            />
+
+                        <div className="">
+                            <div className="w-56 mb-10">
+                                <label htmlFor="saleStartTime" className="font-medium text-gray-700 mb-2">
+                                    Thời gian bắt đầu bán
+                                </label>
+                                <Input
+                                    id="saleStartTime"
+                                    name="saleStartTime"
+                                    type="datetime-local"
+                                    value={formData.saleStartTime || ""}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="">
+                                <label htmlFor="saleEndTime" className="font-medium text-gray-700 mb-2">
+                                    Thời gian kết thúc bán
+                                </label>
+                                <Input
+                                    id="saleEndTime"
+                                    name="saleEndTime"
+                                    type="datetime-local"
+                                    value={formData.saleEndTime || ""}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        <div className="ml-10">
-                            <label htmlFor="saleEndTime" className="font-medium text-gray-700 mb-2">
-                                Thời gian kết thúc bán
+                        <div className="flex flex-col ml-20">
+                            <label htmlFor="description_ticket" className="font-medium text-gray-700">
+                                Mô tả
                             </label>
-                            <Input
-                                id="saleEndTime"
-                                name="saleEndTime"
-                                type="datetime-local"
-                                value={formData.saleEndTime || ""}
-                                onChange={handleChange}
-                                required
-                            />
+                            <textarea
+                                className="w-152 h-34 rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 hover:scale-101"
+                                id="description_ticket"
+                                name="description_ticket"
+                                value={formData.description_ticket || ""}
+                                onChange={handleChange}>
+                            </textarea>
                         </div>
 
                     </div>

@@ -64,7 +64,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Header onLogout={handleLogout} onShowAuth={() => setShowAuth(true)} user={user} />
       {/* Body */}
-      <main className="flex-grow flex flex-col items-center justify-center bg-blue-100 text-center pt-8 pb-8">
+      <main className="flex-grow flex flex-col items-center justify-center bg-white text-center pt-8 pb-8">
         {showCreateEvent && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">
             <CreateEventForm onClose={() => setShowCreateEvent(false)} />
