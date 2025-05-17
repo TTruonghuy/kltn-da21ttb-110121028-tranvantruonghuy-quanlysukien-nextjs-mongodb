@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AuthForm from "@/app/components/auth/AuthFrom";
+import AuthForm from "@/app/components/auth/AuthForm";
 import CreateEventForm from "@/app/components/event/CreateEventForm";
 import axios from "@/lib/axiosInstance";
 import Footer from "@/app/components/Footer";

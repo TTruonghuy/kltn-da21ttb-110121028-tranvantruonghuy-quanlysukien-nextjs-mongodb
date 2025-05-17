@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -118,5 +119,23 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', 'Roboto', Arial, Helvetica, sans-serif;
   }
+}
+
+.event-description ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+.event-description ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+}
+.event-description h3 {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-top: 1rem;
+}
+.event-description p {
+    margin-bottom: 0.5rem;
 }

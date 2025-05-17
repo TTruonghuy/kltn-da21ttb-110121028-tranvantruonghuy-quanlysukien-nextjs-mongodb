@@ -6,33 +6,43 @@ import { TiImage, TiPencil, TiLocation, TiCalendarOutline } from "react-icons/ti
 import TinyMCEWrapper from "@/app/components/ui/TinyMCEWrapper";
 import VietnameseAddressSelector from "@/app/components/ui/VietnameseAddressSelector";
 import axios from "@/lib/axiosInstance";
+import { EventFormData } from "@/app/components/types";
+
 
 interface CreateEventFormProps {
-    formData: {
-        title: string;
-        description: string;
-        houseNumber: string; // Số nhà
-        ward: string; // Phường/Xã
-        district: string; // Quận/Huyện
-        province: string; // Tỉnh/Thành phố
-        location: string;
-        start_time: string;
-        end_time: string;
-        image: File | null;
-        event_type: string;
-    };
-    onFormDataChange: (data: Partial<CreateEventFormProps["formData"]>) => void;
+    formData: EventFormData;
+    onFormDataChange: (data: Partial<EventFormData> | ((prev: EventFormData) => EventFormData)) => void;
     onNext: () => void;
 }
 
 export default function CreateEventForm({ formData, onFormDataChange, onNext }: CreateEventFormProps) {
 
-
+    const [isOnline, setIsOnline] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Khi chọn/tắt online chỉ set state, không reset địa chỉ
+    const handleOnlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onFormDataChange({ isOnline: e.target.checked });
+    };
+
+
+    const handleNext = () => {
+        onFormDataChange(prev => ({
+            ...prev,
+            sessions: prev.sessions && prev.sessions.length > 0
+                ? prev.sessions
+                : [{ start_time: "", end_time: "", tickets: [] }]
+        }));
+        onNext();
+    };
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        onFormDataChange({ [name]: value });
+        onFormDataChange(prev => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,12 +50,12 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
         onFormDataChange({ image: file });
     };
 
-    const handleLocationChange = (address: string) => {
-        onFormDataChange({ location: address });
-    };
+    //const handleLocationChange = (address: string) => {
+    //  onFormDataChange({ location: address });
+    //};
 
-    const token = localStorage.getItem('token');
-    
+    //const token = localStorage.getItem('token');
+
 
     return (
         <form className="space-y-10" >
@@ -66,8 +76,8 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
             </div>
 
             <div>
-                <label htmlFor="image" className="block font-medium text-gray-700 mb-2">
-                    Ảnh sự kiện
+                <label htmlFor="image" className="block font-medium text-gray-700 mb-2 flex">
+                    Ảnh sự kiện <p className="text-red-700 pl-1">*</p>
                 </label>
                 <div className="relative w-full bg-gray-100/50 rounded-md group">
                     <input
@@ -100,8 +110,8 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
             </div>
 
             <div>
-                <label htmlFor="description" className="font-medium text-gray-700 mb-2">
-                    Mô tả
+                <label htmlFor="description" className="font-medium text-gray-700 mb-2 flex">
+                    Mô tả <p className="text-red-700 pl-1">*</p>
                 </label>
                 <TinyMCEWrapper value={formData.description}
                     onChange={(value) => handleChange({ target: { name: "description", value } } as React.ChangeEvent<HTMLInputElement>)} />
@@ -168,60 +178,46 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
             </div>
 
             <div>
-                <label htmlFor="location" className="flex font-medium text-gray-700 mb-2">
-                    <TiLocation className="mt-1 mr-[2px]" /> Địa điểm <p className="text-red-700 pl-1">*</p>
-                </label>
-                <VietnameseAddressSelector
-                    houseNumber={formData.houseNumber}
-                    ward={formData.ward}
-                    district={formData.district}
-                    province={formData.province}
-                    onAddressChange={(data) => {
-                        onFormDataChange({
-                            houseNumber: data.houseNumber,
-                            ward: data.ward,
-                            district: data.district,
-                            province: data.province,
-                        });
-                    }}
-                />
-            </div>
-
-            <div className="flex space-x-20">
-                <div>
-                    <label htmlFor="start_time" className="flex font-medium text-gray-700 mb-2">
-                        <TiCalendarOutline className="mt-1 mr-[2px]" /> Thời gian bắt đầu <p className="text-red-700 pl-1">*</p>
+                <div className="flex">
+                    <label htmlFor="location" className="flex font-medium text-gray-700 mb-2">
+                        <TiLocation className="mt-1 mr-[2px]" /> Địa điểm <p className="text-red-700 pl-1">*</p>
                     </label>
-                    <Input
-                        id="start_time"
-                        name="start_time"
-                        type="datetime-local"
-                        value={formData.start_time}
-                        onChange={handleChange}
-                        required
-                    />
+                    {/* Checkbox sự kiện online */}
+                    <div className="mb-2 ml-10">
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={formData.isOnline || false}
+                                onChange={handleOnlineChange}
+                                className="mr-2"
+                            />
+                            Sự kiện online
+                        </label>
+                    </div>
                 </div>
-
-                <div>
-                    <label htmlFor="end_time" className="flex font-medium text-gray-700 mb-2">
-                        <TiCalendarOutline className="mt-1 mr-[2px]" /> Thời gian kết thúc <p className="text-red-700 pl-1">*</p>
-                    </label>
-                    <Input
-                        id="end_time"
-                        name="end_time"
-                        type="datetime-local"
-                        value={formData.end_time}
-                        onChange={handleChange}
-                        required
+                {!formData.isOnline && (
+                    <VietnameseAddressSelector
+                        houseNumber={formData.houseNumber}
+                        ward={formData.ward}
+                        district={formData.district}
+                        province={formData.province}
+                        onAddressChange={(data) => {
+                            onFormDataChange({
+                                houseNumber: data.houseNumber,
+                                ward: data.ward,
+                                district: data.district,
+                                province: data.province,
+                            });
+                        }}
                     />
-                </div>
+                )}
             </div>
 
             <div className="flex justify-end">
                 <Button
                     type="button"
                     className="bg-blue-500 hover:bg-blue-600 text-white py-3 h-10 flex"
-                    onClick={onNext}
+                    onClick={handleNext}
                 >
                     Tiếp tục
                 </Button>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface Event {
     id: string;
@@ -17,6 +18,7 @@ interface EventListProps {
 
 const EventList: React.FC<EventListProps> = ({ filterType }) => {
     const [events, setEvents] = useState<Event[]>([]);
+    const router = useRouter();
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -24,7 +26,10 @@ const EventList: React.FC<EventListProps> = ({ filterType }) => {
                 const response = await axios.get(`http://localhost:5000/event/list`, {
                     params: { event_type: filterType },
                 });
-                setEvents(response.data);
+                setEvents(response.data.map((e: any) => ({
+                    ...e,
+                    id: e.id || e._id,
+                })));
             } catch (error) {
                 console.error("Error fetching events:", error);
             }
@@ -43,14 +48,19 @@ const EventList: React.FC<EventListProps> = ({ filterType }) => {
             </div>
             <div className="grid grid-cols-4 gap-5 ">
                 {events.map((event) => (
-                    <div key={event.id} >
+                    <div key={event.id}
+                        className=" rounded cursor-pointer hover:opacity-90 hover:bg-gray-100"
+                        onClick={() => {
+                            console.log("Clicked event:", event); // Log event khi click
+                            router.push(`/event/${event.id}`);
+                        }}>
                         <img
                             src={event.image}
                             alt={event.title}
                             className="w-full h-45 object-cover rounded mb-4"
                         />
-                        <h3 className="text-[16px] font-semibold text-left mb-2">{event.title}</h3>
-                        <p className="text-gray-500 text-left">
+                        <h3 className="text-[15px] font-semibold text-left m-2">{event.title}</h3>
+                        <p className="text-gray-500 text-left m-2">
                             {new Date(event.start_time).toLocaleDateString("vi-VN", {
                                 weekday: "long",
                                 year: "numeric",
