@@ -41,7 +41,7 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
           </li>
           {user?.role === "organizer" && (
             <li
-              onClick={() => router.push("/event-management")}
+              onClick={() => window.open("/event-management", "_blank")}
               className={listItemClass}
             >
               QUẢN LÝ SỰ KIỆN

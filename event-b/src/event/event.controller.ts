@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req, Res, UseInterceptors, UploadedFile, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Res, UseInterceptors, UploadedFile, Get, Param } from '@nestjs/common';
 import { EventService } from './event.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RequestWithUser } from '../auth/auth.controller'; // Import RequestWithUser
@@ -12,11 +12,11 @@ import { Query } from '@nestjs/common';
 export class EventController {
   constructor(private readonly eventService: EventService) { }
 
- @Get('list')
+  @Get('list')
   async getEvents(
     @Res() res: Response,
     @Query('event_type') eventType?: string, // Lọc theo loại sự kiện nếu cần
-    
+
   ) {
     try {
       const events = await this.eventService.getEvents(eventType ? { event_type: eventType } : {});
@@ -26,6 +26,20 @@ export class EventController {
       return res.status(500).send({ message: 'Internal Server Error', error: error.message });
     }
   }
+
+  
+    @Get(':id')
+    async getEventDetail(@Param('id') id: string, @Res() res: Response) {
+      try {
+        // Lấy event, sessions, tickets từ DB
+        const event = await this.eventService.getEventDetail(id);
+        return res.status(200).json(event);
+      } catch (error) {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+    }
+
+
 
   @Post('create')
   @UseGuards(JwtAuthGuard)
@@ -43,11 +57,17 @@ export class EventController {
     @Body() body: {
       title: string;
       description: string;
-      location: string;
-      start_time: Date;
-      end_time: Date
+      location: {
+        houseNumber: string;
+        ward: string;
+        district: string;
+        province: string;
+      };
+       //start_time: Date;
+      //end_time: Date;
       event_type: string;
     },
+
     @UploadedFile() image: Express.Multer.File, // Nhận file upload
     @Req() req: RequestWithUser, // Sử dụng RequestWithUser
     @Res() res: Response,
@@ -58,37 +78,37 @@ export class EventController {
         return res.status(403).send({ message: 'Unauthorized' });
       }
 
-    let imageUrl = '';
-    if (image && image.buffer) {
-      try {
-        const fileName = `event/${Date.now()}-${image.originalname}`;
-        const file = bucket.file(fileName);
+      let imageUrl = '';
+      if (image && image.buffer) {
+        try {
+          const fileName = `event/${Date.now()}-${image.originalname}`;
+          const file = bucket.file(fileName);
 
-        console.log('Uploading file to Firebase:', fileName);
+          console.log('Uploading file to Firebase:', fileName);
 
-        await file.save(image.buffer, {
-          metadata: {
-            contentType: image.mimetype,
-          },
-          predefinedAcl: 'publicRead',
-        });
-    
-        const [url] = await file.getSignedUrl({
-          action: 'read',
-          expires: '03-01-2030',
-        });
-        imageUrl = url;
-        console.log('File uploaded successfully. URL:', imageUrl);
-      } catch (error) {
-        console.error('Error uploading image to Firebase:', error);
-        throw new Error('Failed to upload image');
+          await file.save(image.buffer, {
+            metadata: {
+              contentType: image.mimetype,
+            },
+            predefinedAcl: 'publicRead',
+          });
+
+          const [url] = await file.getSignedUrl({
+            action: 'read',
+            expires: '03-01-2030',
+          });
+          imageUrl = url;
+          console.log('File uploaded successfully. URL:', imageUrl);
+        } catch (error) {
+          console.error('Error uploading image to Firebase:', error);
+          throw new Error('Failed to upload image');
+        }
       }
-    }
 
-      const event = await this.eventService.createEvent({ 
-        ...body, 
+      const event = await this.eventService.createEvent({
+        ...body,
         image: imageUrl, // Lưu URL của ảnh vào cơ sở dữ liệu
-        organizer_id: organizerId 
+        organizer_id: organizerId
       });
       return res.status(201).send({ message: 'Event created successfully', event });
     } catch (error) {
@@ -98,8 +118,4 @@ export class EventController {
       return res.status(500).send({ message: 'Internal Server Error', error: error.message });
     }
   }
-
- 
-
-
 };

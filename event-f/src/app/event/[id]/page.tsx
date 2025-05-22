@@ -63,15 +63,15 @@ export default function Event() {
                                 <span className="mr-2">📍</span>
                                 {event.location}
                             </div>
-                            <div className="bg-blue-50 p-2 rounded mb-2 text-sm font-semibold">
+                            <div className=" p-2 rounded-lg mb-2 text-sm font-semibold">
                                 Giá vé từ {event.min_price.toLocaleString("vi-VN")}đ đến {event.max_price.toLocaleString("vi-VN")}đ
                             </div>
-                            <button className="w-full bg-blue-700 text-white py-2 rounded font-bold">Mua vé</button>
+                            <button className="w-full bg-blue-700 text-white py-2 rounded-lg font-bold">Mua vé</button>
                         </div>
 
 
                         {/* Ảnh sự kiện bên phải */}
-                        <div className="col-span-1 w-215 h-75">
+                        <div className="col-span-1 w-215 h-77">
                             <img src={event.image} alt={event.title} className=" w-full h-full object-cover rounded-lg rounded-l-[0px] " />
                         </div>
                     </div>
@@ -91,15 +91,13 @@ export default function Event() {
                             <h2 className="font-semibold mb-4 text-[20px]">Thông tin vé</h2>
                             {event.sessions.map((session, idx) => (
                                 <div key={idx} className="mb-2">
-                                    <div className="font-semibold text-xs mb-1">
+                                    <div className="font-semibold text-[14px] mb-1">
                                         ▼ Xuất: {new Date(session.start_time).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long" })}
-                                    </div>
+                                     <button className="bg-blue-700 text-white px-4 py-1 rounded text-xs ml-16">Đặt vé</button>                                    </div>
                                     {session.tickets.map((ticket, tIdx) => (
-                                        <div key={tIdx} className="flex justify-between items-center border-b py-1 text-xs">
+                                        <div key={tIdx} className="flex justify-between items-center bg-gray-100 rounded-[8px] my-2 p-2 text-[14px]">
                                             <span>{ticket.name}</span>
-                                            <span>{ticket.price.toLocaleString("vi-VN")}.đ</span>
-                                            <button className="bg-blue-700 text-white px-2 py-1 rounded text-xs">Đặt vé</button>
-                                        </div>
+                                            <span>{ticket.price.toLocaleString("vi-VN")}.đ</span>                                        </div>
                                     ))}
                                 </div>
                             ))}

@@ -3,8 +3,9 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Ticket extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'Event', required: true })
-  event_id: Types.ObjectId;
+  
+  @Prop({ type: Types.ObjectId, ref: 'Session', required: true })
+  session_id: Types.ObjectId;
 
   @Prop({ type: String, required: true })
   ticket_name: string;

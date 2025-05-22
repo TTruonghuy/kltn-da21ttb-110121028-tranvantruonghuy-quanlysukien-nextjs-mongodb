@@ -81,12 +81,24 @@ export default function EventManagementPage() {
                 <nav className="w-64 h-[510px] bg-white flex flex-col p-4 rounded-lg m-5 fixed top-25">
                     <button
                         onClick={() => setActiveTab("create-event")}
-                        className={`py-2 px-4 mb-2 text-left rounded ${activeTab === "create-event" ? "bg-blue-400 text-white" : "hover:bg-blue-400"
+                        className={`py-2 px-4 mb-2 text-left rounded ${(activeTab === "create-event" || activeTab === "create-ticket")   ? "bg-blue-400 text-white" : "hover:bg-blue-400"
                             }`}
                     >
                         Tạo sự kiện
                     </button>
                 </nav>
+
+                 <nav className="w-64 h-[510px] bg-white flex flex-col p-4 rounded-lg m-5 fixed top-25">
+                    <button
+                        onClick={() => setActiveTab("create-event")}
+                        className={`py-2 px-4 mb-2 text-left rounded ${(activeTab === "create-event" || activeTab === "create-ticket")   ? "bg-blue-400 text-white" : "hover:bg-blue-400"
+                            }`}
+                    >
+                        Quản lý sự kiện
+                    </button>
+                </nav>
+
+
                 <main className="flex-grow p-10 pt-4 bg-white rounded-lg mt-30 mr-5 mb-5 ml-[300px]">
                     {activeTab === "create-event" && (
                         <CreateEventForm
