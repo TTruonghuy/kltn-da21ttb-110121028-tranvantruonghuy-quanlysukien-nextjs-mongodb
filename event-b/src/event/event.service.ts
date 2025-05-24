@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Event, EventDocument } from '../database/schemas/event.schema';
 import { Session, SessionDocument } from '../database/schemas/session.schema';
 import { Ticket } from '../database/schemas/ticket.schema';
+import { stat } from 'fs';
 
 @Injectable()
 export class EventService {
@@ -25,8 +26,6 @@ export class EventService {
       district: string;
       province: string;
     };
-    //start_time: Date;
-    //end_time: Date;
     event_type: string;
     image?: string
   }) {
@@ -151,16 +150,85 @@ export class EventService {
         title: event.title,
         description: event.description,
         image: event.image,
-        location: `${event.location.houseNumber}, ${event.location.ward}, ${event.location.district}, ${event.location.province}`,
+        location: {
+          houseNumber: event.location.houseNumber,
+          ward: event.location.ward,
+          district: event.location.district,
+          province: event.location.province,
+        },
+        event_type: event.event_type, // Thêm dòng này!
         sessions: sessionsWithTickets,
         min_price,
         max_price,
+        status: event.status,
       };
     } catch (error) {
       console.error('Get Event Detail Error:', error);
       throw error;
     }
   }
+
+
+
+
+
+  async updateStatus(eventId: string, status: string) {
+    return this.eventModel.findByIdAndUpdate(eventId, { status }, { new: true });
+  }
+
+
+
+
+  async getEventsByOrganizer(organizerId: string) {
+    try {
+      const events = await this.eventModel.find({ organizer_id: new Types.ObjectId(organizerId) }).lean();
+      const eventIds = events.map(e => e._id);
+
+      // Lấy tất cả session theo eventIds
+      const sessions = await this.sessionModel.find({ event_id: { $in: eventIds } }).lean();
+
+      // Gom session theo event_id
+      const sessionsByEvent: { [key: string]: any[] } = {};
+      sessions.forEach(session => {
+        const eid = session.event_id.toString();
+        if (!sessionsByEvent[eid]) sessionsByEvent[eid] = [];
+        sessionsByEvent[eid].push(session);
+      });
+
+      // Tính min/max thời gian cho từng event
+      return events.map(event => {
+        const eid = event._id.toString();
+        const eventSessions = sessionsByEvent[eid] || [];
+        const startTimes = eventSessions.map(s => s.start_time).filter(Boolean);
+        const endTimes = eventSessions.map(s => s.end_time).filter(Boolean);
+
+        const min_start_time = startTimes.length
+          ? new Date(Math.min(...startTimes.map(d => new Date(d).getTime())))
+          : null;
+        const max_end_time = endTimes.length
+          ? new Date(Math.max(...endTimes.map(d => new Date(d).getTime())))
+          : null;
+
+        return {
+          id: event._id,
+          title: event.title,
+          image: event.image,
+          status: event.status,
+          min_start_time,
+          max_end_time,
+        };
+      });
+    } catch (error) {
+      console.error('Get Events By Organizer Error:', error);
+      throw error;
+    }
+  }
+
+
+  async updateEvent(eventId: string, data: any) {
+  return this.eventModel.findByIdAndUpdate(eventId, data, { new: true });
+}
+
 }
 
 

@@ -12,10 +12,13 @@ import { EventFormData } from "@/app/components/types";
 interface CreateEventFormProps {
     formData: EventFormData;
     onFormDataChange: (data: Partial<EventFormData> | ((prev: EventFormData) => EventFormData)) => void;
-    onNext: () => void;
+    isEdit?: boolean;
+    onUpdate?: () => void;
+    onCancel?: () => void;
+    onNext?: () => void;
 }
 
-export default function CreateEventForm({ formData, onFormDataChange, onNext }: CreateEventFormProps) {
+export default function CreateEventForm({ formData, onFormDataChange, onNext, isEdit, onUpdate }: CreateEventFormProps) {
 
     const [isOnline, setIsOnline] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,7 +28,6 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
         onFormDataChange({ isOnline: e.target.checked });
     };
 
-
     const handleNext = () => {
         onFormDataChange(prev => ({
             ...prev,
@@ -33,7 +35,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
                 ? prev.sessions
                 : [{ start_time: "", end_time: "", tickets: [] }]
         }));
-        onNext();
+        if (onNext) onNext();
     };
 
 
@@ -76,7 +78,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
             </div>
 
             <div>
-                <label htmlFor="image" className="block font-medium text-gray-700 mb-2 flex">
+                <label htmlFor="image" className="font-medium text-gray-700 mb-2 flex">
                     Ảnh sự kiện <p className="text-red-700 pl-1">*</p>
                 </label>
                 <div className="relative w-full bg-gray-100/50 rounded-md group">
@@ -213,15 +215,35 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext }: 
                 )}
             </div>
 
-            <div className="flex justify-end">
-                <Button
-                    type="button"
-                    className="bg-blue-500 hover:bg-blue-600 text-white py-3 h-10 flex"
-                    onClick={handleNext}
-                >
-                    Tiếp tục
-                </Button>
+            <div className="flex justify-end space-x-2">
+                {isEdit ? (
+                    <>
+                        <Button
+                            type="button"
+                            className="bg-blue-500 hover:bg-blue-600 text-white py-3 h-10 flex"
+                            onClick={onUpdate} // Đổi tên prop thành onUpdate nếu muốn rõ ràng hơn
+                        >
+                            Cập nhật
+                        </Button>
+                        <Button
+                            type="button"
+                            className="bg-gray-300 hover:bg-gray-400 text-black py-3 h-10 flex"
+
+                        >
+                            Huỷ
+                        </Button>
+                    </>
+                ) : (
+                    <Button
+                        type="button"
+                        className="bg-blue-500 hover:bg-blue-600 text-white py-3 h-10 flex"
+                        onClick={handleNext}
+                    >
+                        Tiếp tục
+                    </Button>
+                )}
             </div>
+
         </form>
     );
 }

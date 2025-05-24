@@ -1,13 +1,14 @@
 "use client";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthForm from "@/app/components/auth/AuthForm";
-import CreateEventForm from "@/app/components/event/CreateEventForm";
+import CreateEventForm from "@/app/components/event[organizer]/CreateEventForm";
 import axios from "@/lib/axiosInstance";
 import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
-import EventList from "@/app/components/event/EventList";
+import EventList from "@/app/components/event[organizer]/EventList";
 
 export default function Home() {
   const router = useRouter();
@@ -15,6 +16,15 @@ export default function Home() {
   const [showAuth, setShowAuth] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+    const searchParams = useSearchParams();
+
+
+  useEffect(() => {
+    if (searchParams.get("showAuth") === "true") {
+      setShowAuth(true);
+    }
+  }, [searchParams]);
+
 
   // Fetch user data on mount
   useEffect(() => {
@@ -65,20 +75,16 @@ export default function Home() {
       <Header onLogout={handleLogout} onShowAuth={() => setShowAuth(true)} user={user} />
       {/* Body */}
       <main className="flex-grow flex flex-col items-center justify-center bg-white text-center pt-8 pb-8">
-        {showCreateEvent && (
-          <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)]">
-            <CreateEventForm onClose={() => setShowCreateEvent(false)} />
-          </div>
-        )}
+        
         {showAuth && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)] z-41">
             <AuthForm onClose={() => setShowAuth(false)} setUser={setUser} />
           </div>
         )}
 
-        
+
         <EventList filterType="văn hóa nghệ thuật" />
-       
+
       </main>
       <Footer />
     </div>
