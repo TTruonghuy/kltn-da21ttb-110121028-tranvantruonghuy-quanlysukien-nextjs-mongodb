@@ -9,6 +9,7 @@ import OrganizerEventList from "./OrganizerEventList";
 import EventDetailModal from "./EventDetailModal";
 import { TiUser } from "react-icons/ti";
 import { FaSignOutAlt } from "react-icons/fa";
+import OrganizerInfoModal from "../organizer/OrganizerInfoModal";
 
 export default function EventManagementPage() {
     const [activeTab, setActiveTab] = useState("create-event"); // Tab mặc định là "Tạo sự kiện"
@@ -20,6 +21,9 @@ export default function EventManagementPage() {
     const [showCreateTicketForm, setShowCreateTicketForm] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+    const [showOrganizerInfo, setShowOrganizerInfo] = useState(false);
+    const [organizerInfo, setOrganizerInfo] = useState<any>(null);
+
 
 
 
@@ -118,10 +122,15 @@ export default function EventManagementPage() {
                                 <div className="absolute left-10 top-25 bg-white border rounded shadow-lg z-50 min-w-[180px]">
                                     <button
                                         className="block w-full text-left px-4 py-2 hover:bg-blue-100 flex"
-                                        onClick={e => {
+                                        onClick={async e => {
                                             e.stopPropagation();
-                                            // TODO: Hiển thị thông tin user (có thể mở modal)
-                                            alert(`Tên: ${user.name}\nEmail: ${user.email}`);
+                                            try {
+                                                const res = await axios.get("http://localhost:5000/organizer/me", { withCredentials: true });
+                                                setOrganizerInfo(res.data);
+                                                setShowOrganizerInfo(true);
+                                            } catch {
+                                                alert("Không lấy được thông tin!");
+                                            }
                                             setShowUserMenu(false);
                                         }}
                                     >
@@ -216,80 +225,104 @@ export default function EventManagementPage() {
 
                 </nav>
 
-                <main className="flex-grow p-10 pt-12 bg-white mr-5 mb-5 ml-[300px]">
-                    {subTab === "create" && (
-                        showCreateTicketForm ? (
-                            <CreateTicketForm
-                                formData={formData}
-                                onFormDataChange={handleFormDataChange}
-                                onBack={() => setShowCreateTicketForm(false)}
-                                onSubmit={() => {
-                                    setShowCreateTicketForm(false);
-                                    setSubTab("saved");
-                                }}
-                            />
-                        ) : (
-                            <CreateEventForm
-                                formData={formData}
-                                onFormDataChange={handleFormDataChange}
-                                onNext={() => setShowCreateTicketForm(true)}
-                            />
-                        )
-                    )}
 
 
-                    {mainTab === "create" && subTab === "saved" && (
-                        <div>
 
-                            {selectedEventId ? (
-                                <EventDetailModal
-                                    eventId={selectedEventId}
-                                    onBack={() => setSelectedEventId(null)}
+
+
+
+                {showOrganizerInfo && organizerInfo ? (
+                    <OrganizerInfoModal
+                        open={showOrganizerInfo}
+                        onClose={() => setShowOrganizerInfo(false)}
+                        organizer={organizerInfo || {}}
+                        onSave={async (data) => {
+                            try {
+                                await axios.put("http://localhost:5000/organizer/me", data, { withCredentials: true });
+                                setOrganizerInfo(data);
+                                setShowOrganizerInfo(false);
+                            } catch {
+                                alert("Cập nhật thất bại!");
+                            }
+                        }}
+                    />
+                ) : (
+
+                    <main className="flex-grow p-10 pt-12 bg-white mr-5 mb-5 ml-[300px]">
+                        {subTab === "create" && (
+                            showCreateTicketForm ? (
+                                <CreateTicketForm
+                                    formData={formData}
+                                    onFormDataChange={handleFormDataChange}
+                                    onBack={() => setShowCreateTicketForm(false)}
+                                    onSubmit={() => {
+                                        setShowCreateTicketForm(false);
+                                        setSubTab("saved");
+                                    }}
                                 />
                             ) : (
-                                <>
-                                    <h2 className="text-xl font-bold mb-4">Sự kiện đã lưu</h2>
-                                    <OrganizerEventList
-                                        filterStatus="pending"
-                                        onSelectEvent={setSelectedEventId}
+                                <CreateEventForm
+                                    formData={formData}
+                                    onFormDataChange={handleFormDataChange}
+                                    onNext={() => setShowCreateTicketForm(true)}
+                                />
+                            )
+                        )}
+
+
+                        {mainTab === "create" && subTab === "saved" && (
+                            <div>
+
+                                {selectedEventId ? (
+                                    <EventDetailModal
+                                        eventId={selectedEventId}
+                                        onBack={() => setSelectedEventId(null)}
                                     />
-                                </>
-                            )}
-                        </div>
-                    )}
+                                ) : (
+                                    <>
+                                        <h2 className="text-xl font-bold mb-4">Sự kiện đã lưu</h2>
+                                        <OrganizerEventList
+                                            filterStatus="pending"
+                                            onSelectEvent={setSelectedEventId}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                        )}
 
 
-                    {mainTab === "create" && subTab === "deleted" && (
-                        <div>
-                            <h2 className="text-xl font-bold mb-4">Sự kiện đã xoá</h2>
-                            <OrganizerEventList filterStatus="rejected" />
-                        </div>
-                    )}
+                        {mainTab === "create" && subTab === "deleted" && (
+                            <div>
+                                <h2 className="text-xl font-bold mb-4">Sự kiện đã xoá</h2>
+                                <OrganizerEventList filterStatus="rejected" />
+                            </div>
+                        )}
 
 
-                    {mainTab === "manage" && subTab === "upcoming" && (
-                        <div>
-                            <h2 className="text-xl font-bold mb-4">Sự kiện chưa diễn ra</h2>
-                            <OrganizerEventList filterStatus="approved" filterTime="upcoming" />
-                        </div>
-                    )}
+                        {mainTab === "manage" && subTab === "upcoming" && (
+                            <div>
+                                <h2 className="text-xl font-bold mb-4">Sự kiện chưa diễn ra</h2>
+                                <OrganizerEventList filterStatus="approved" filterTime="upcoming" />
+                            </div>
+                        )}
 
 
-                    {mainTab === "manage" && subTab === "ongoing" && (
-                        <div>
-                            <h2 className="text-xl font-bold mb-4">Sự kiện đang diễn ra</h2>
-                            <OrganizerEventList filterStatus="approved" filterTime="ongoing" />
-                        </div>
-                    )}
+                        {mainTab === "manage" && subTab === "ongoing" && (
+                            <div>
+                                <h2 className="text-xl font-bold mb-4">Sự kiện đang diễn ra</h2>
+                                <OrganizerEventList filterStatus="approved" filterTime="ongoing" />
+                            </div>
+                        )}
 
 
-                    {mainTab === "manage" && subTab === "past" && (
-                        <div>
-                            <h2 className="text-xl font-bold mb-4">Sự kiện đã qua</h2>
-                            <OrganizerEventList filterStatus="approved" filterTime="past" />
-                        </div>
-                    )}
-                </main>
+                        {mainTab === "manage" && subTab === "past" && (
+                            <div>
+                                <h2 className="text-xl font-bold mb-4">Sự kiện đã qua</h2>
+                                <OrganizerEventList filterStatus="approved" filterTime="past" />
+                            </div>
+                        )}
+                    </main>
+                )}
             </div>
         </div>
     );
