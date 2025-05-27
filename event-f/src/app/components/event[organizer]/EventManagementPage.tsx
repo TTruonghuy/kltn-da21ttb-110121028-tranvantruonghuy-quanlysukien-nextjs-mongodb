@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import CreateEventForm from "./CreateEventForm";
 import CreateTicketForm from "../ticket/CreateTicketForm";
 import Header from "@/app/components/Header";
@@ -7,6 +7,8 @@ import axios from "@/lib/axiosInstance";
 import { EventFormData } from "@/app/components/types";
 import OrganizerEventList from "./OrganizerEventList";
 import EventDetailModal from "./EventDetailModal";
+import { TiUser } from "react-icons/ti";
+import { FaSignOutAlt } from "react-icons/fa";
 
 export default function EventManagementPage() {
     const [activeTab, setActiveTab] = useState("create-event"); // Tab mặc định là "Tạo sự kiện"
@@ -16,6 +18,10 @@ export default function EventManagementPage() {
     const [showManageSubNav, setShowManageSubNav] = useState(false);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [showCreateTicketForm, setShowCreateTicketForm] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const userMenuRef = useRef<HTMLDivElement>(null);
+
+
 
 
     const [user, setUser] = useState<{
@@ -56,6 +62,20 @@ export default function EventManagementPage() {
         });
     };
 
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setShowUserMenu(false);
+            }
+        }
+        if (showUserMenu) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [showUserMenu]);
+
 
     useEffect(() => {
         axios
@@ -76,23 +96,57 @@ export default function EventManagementPage() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Header
-                user={user}
-                onLogout={() => {
-                    axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true }).then(() => {
-                        setUser(null);
-                        window.location.href = "/";
-                    });
-                }}
-                onShowAuth={() => console.log("Show Auth")}
-            />
-
-
-
-
-            <div className="flex flex-grow bg-blue-200 h-full w-full">
-                <nav className="w-64 bg-white flex flex-col p-4 rounded-lg m-5 fixed top-25 h-128">
+            <div className="flex flex-grow h-full w-full">
+                <nav className="w-64 bg-white flex flex-col p-4  fixed top-0 h-160 border-r border-gray-200">
                     {/* Nav cha */}
+                    {/* Gọi ảnh , tên user organizer ở đây */}
+                    {user && (
+                        <div className="flex items-center gap-4 mb-8 mt-8 border-b pb-4"
+                            onClick={() => setShowUserMenu((prev) => !prev)}
+                            ref={userMenuRef}
+                        >
+                            <img
+                                src={user.avatar || "/default-avatar.png"}
+                                alt={user.name}
+                                className="w-10 h-10 rounded-full object-cover border"
+                            />
+                            <div>
+                                <span className="block font-semibold text-blue-900">{user.name}</span>
+                                <span className="block text-xs text-gray-500">{user.email}</span>
+                            </div>
+                            {showUserMenu && (
+                                <div className="absolute left-10 top-25 bg-white border rounded shadow-lg z-50 min-w-[180px]">
+                                    <button
+                                        className="block w-full text-left px-4 py-2 hover:bg-blue-100 flex"
+                                        onClick={e => {
+                                            e.stopPropagation();
+                                            // TODO: Hiển thị thông tin user (có thể mở modal)
+                                            alert(`Tên: ${user.name}\nEmail: ${user.email}`);
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <TiUser className="w-5 h-5 mt-[1px]" />  Thông tin
+                                    </button>
+                                    <button
+                                        className="block w-full text-left px-4 py-2 hover:bg-blue-100 text-red-600 flex"
+                                        onClick={async e => {
+                                            e.stopPropagation();
+                                            try {
+                                                await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
+                                                setUser(null); // Xoá user ở client
+                                                window.location.href = "/";
+                                            } catch (error) {
+                                                console.error("Error logging out:", error);
+                                            }
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <FaSignOutAlt className="w-4 h-4 mt-1 mr-1 ml-1" />  Đăng xuất
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <button
                         onClick={() => {
                             setMainTab("create");
@@ -159,9 +213,10 @@ export default function EventManagementPage() {
                             </button>
                         </div>
                     )}
+
                 </nav>
 
-                <main className="flex-grow p-10 pt-4 bg-white rounded-lg mt-30 mr-5 mb-5 ml-[300px]">
+                <main className="flex-grow p-10 pt-12 bg-white mr-5 mb-5 ml-[300px]">
                     {subTab === "create" && (
                         showCreateTicketForm ? (
                             <CreateTicketForm

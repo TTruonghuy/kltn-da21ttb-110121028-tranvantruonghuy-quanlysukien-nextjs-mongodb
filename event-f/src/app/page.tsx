@@ -16,7 +16,7 @@ export default function Home() {
   const [showAuth, setShowAuth] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
-    const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
 
   useEffect(() => {
@@ -74,17 +74,18 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Header onLogout={handleLogout} onShowAuth={() => setShowAuth(true)} user={user} />
       {/* Body */}
-      <main className="flex-grow flex flex-col items-center justify-center bg-white text-center pt-8 pb-8">
-        
+      <main className="flex-grow flex flex-col items-center justify-center text-center pt-8 pb-8">
         {showAuth && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)] z-41">
             <AuthForm onClose={() => setShowAuth(false)} setUser={setUser} />
           </div>
         )}
-
-
-        <EventList filterType="văn hóa nghệ thuật" />
-
+        <div className="mt-2">
+          <div className="h-96"> <EventList filterType="âm nhạc" /></div>
+          <div className="h-96"> <EventList filterType="văn hóa nghệ thuật" /></div>
+          <div className="h-96"> <EventList filterType="thể thao" /></div>
+          <div className="h-96"> <EventList filterType="khác" /></div>
+        </div>
       </main>
       <Footer />
     </div>

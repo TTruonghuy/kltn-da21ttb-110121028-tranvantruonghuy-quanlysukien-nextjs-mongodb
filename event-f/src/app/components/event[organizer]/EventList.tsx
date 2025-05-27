@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { TiChevronRight } from "react-icons/ti";
+
 
 interface Event {
     id: string;
@@ -40,13 +42,13 @@ const EventList: React.FC<EventListProps> = ({ filterType }) => {
     }, [filterType]);
 
     return (
-        <div className=" ml-2 mr-2 p-4 bg-white rounded-lg">
+        <div className=" ml-2 mr-2 p-4 bg-white rounded-lg h-full">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">
                     {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
                 </h2>
-                <a href="#" className="text-blue-500 text-sm font-semibold">
-                    Xem tất cả &gt;
+                <a href="#" className="text-gray-500 text-sm flex hover:scale-102">
+                    Xem tất cả <TiChevronRight className="w-5 h-5 ml-1" />
                 </a>
             </div>
             <div className="grid grid-cols-4 gap-5 ">
