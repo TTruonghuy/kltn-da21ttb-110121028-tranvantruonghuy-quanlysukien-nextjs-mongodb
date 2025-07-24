@@ -1,21 +1,36 @@
 import Image from "next/image";
 import { TiHome, TiPlus } from "react-icons/ti";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TbZoom } from "react-icons/tb";
 import Link from "next/link";
 
 interface HeaderProps {
-  user: { email: string; name: string; avatar?: string; role?: string } | null;
+  user: { email: string; name: string; avatar?: string; logo?: string;
+    role?: string } | null;
   onLogout: () => void;
   onShowAuth: () => void;
 }
 
 export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   //console.log("User in Header:", user?.role);
   const listItemClass = "font-semibold flex text-[13px] cursor-pointer";
+
+
+  // Đóng menu khi click ra ngoài
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
 
   return (
     <>
@@ -52,23 +67,51 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
         </nav>
         <div className="relative">
           {user ? (
-            <div className="flex items-center space-x-3 cursor-pointer menu-container" onClick={() => setMenuOpen(!menuOpen)}>
+            <div
+              ref={menuRef}
+              className="flex items-center space-x-3 cursor-pointer menu-container relative"
+              onClick={() => setMenuOpen(!menuOpen)}>
               <img
-                src={user.avatar || "/default-avatar.png"}
+                src={user.avatar || user.logo}
                 alt="Avatar"
                 width={30}
                 height={30}
                 className="rounded-full"
               />
-              <span className="font-semibold">{user.name}</span>
+              <span className="font-semibold pr-10">{user.name}</span>
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
-                  <button
-                    onClick={onLogout}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Đăng xuất
-                  </button>
+                <div className="absolute right-8 top-full mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                  {user.role === "organizer" ? (
+                    <button
+                      onClick={onLogout}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      Đăng xuất
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          router.push("/users");
+                        }}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Hồ sơ
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Vé của tôi
+                      </button>
+                      <button
+                        onClick={onLogout}
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        Đăng xuất
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

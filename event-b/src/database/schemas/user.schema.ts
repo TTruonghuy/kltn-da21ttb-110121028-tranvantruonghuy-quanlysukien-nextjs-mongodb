@@ -20,11 +20,23 @@ export class User {
   @Prop()
   avatar: string; // Thêm trường avatar
 
-  @Prop()
-  dob: Date;
+  //@Prop()
+  //dob: Date;
 
-  @Prop({ type: [String] })
-  interest: string[];
+  //@Prop({ type: [String] })
+  //interest: string[];
+
+  @Prop()
+  province: string; // Tỉnh/Thành phố
+
+  @Prop()
+  district: string; // Quận/Huyện
+
+  @Prop()
+  ward: string; // Phường/Xã
+
+  @Prop()
+  address: string; // Địa chỉ
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

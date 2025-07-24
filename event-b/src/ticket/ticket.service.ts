@@ -3,13 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Ticket } from '../database/schemas/ticket.schema';
 import { Session, SessionDocument } from '../database/schemas/session.schema';
-
+import { SeatingChart, SeatingChartDocument } from '../database/schemas/seatingticket.schema';
 
 @Injectable()
 export class TicketService {
   constructor(
     @InjectModel('Ticket') private readonly ticketModel: Model<Ticket>,
     @InjectModel('Session') private readonly sessionModel: Model<SessionDocument>,
+     @InjectModel('SeatingChart') private readonly seatingChartModel: Model<SeatingChartDocument>,
   ) { }
 
   async createSession(event_id: string, start_time: Date, end_time: Date): Promise<SessionDocument> {
@@ -33,6 +34,16 @@ export class TicketService {
       return await ticket.save();
     } catch (error) {
       console.error('Error creating ticket:', error);
+      throw error;
+    }
+  }
+
+    async createSeatingChart(data: Partial<SeatingChart>): Promise<SeatingChart> {
+    try {
+      const chart = new this.seatingChartModel(data);
+      return await chart.save();
+    } catch (error) {
+      console.error('Error creating seating chart:', error);
       throw error;
     }
   }

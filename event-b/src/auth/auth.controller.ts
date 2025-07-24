@@ -73,7 +73,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 36000000,
+      maxAge: 604800000,
     });
     return res.send({ message: "Đăng nhập thành công" });
   }

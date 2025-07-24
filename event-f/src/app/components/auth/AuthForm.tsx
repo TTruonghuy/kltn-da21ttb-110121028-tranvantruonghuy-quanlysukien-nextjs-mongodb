@@ -141,7 +141,7 @@ export default function AuthForm({ onClose, setUser }: AuthFormProps) {
                     type="file"
                     accept="image/*"
                     onChange={(e) => setImage(e.target.files?.[0] || null)}
-                    className=" text-gray-600 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold text-[12px]"
+                    className=" text-gray-600 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold text-[12px] w-full"
                   />
                 </div>
               </div>

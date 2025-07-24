@@ -15,7 +15,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Organizer.name) private readonly organizerModel: Model<Organizer>,
-  ) {}
+  ) { }
 
   async register(data: { email: string; password: string; role: string; name: string; image?: Express.Multer.File }) {
     try {
@@ -52,6 +52,11 @@ export class AuthService {
           name,
           email,
           avatar: avatarUrl,
+          phone: "",
+          province: "",
+          district: "",
+          ward: "",
+          address: "",
         });
       } else if (role === 'organizer') {
         await this.organizerModel.create({
@@ -60,6 +65,11 @@ export class AuthService {
           email,
           logo: avatarUrl,
           events_created: 0,
+          phone: "",
+          address: "",
+          description: "",
+          weblink: "",
+          social_link: "",
         });
       }
 
@@ -70,7 +80,7 @@ export class AuthService {
     }
   }
 
-  async login({ email, password }: { email: string; password: string}) {
+  async login({ email, password }: { email: string; password: string }) {
     try {
       const account = await this.accountService.findByEmail(email);
       if (!account) throw new Error("Tài khoản không tồn tại");
@@ -109,15 +119,25 @@ export class AuthService {
             account_id: newAccount._id,
             name: user.name,
             email: user.email,
-            avatar: user.avatar, // Lưu avatar từ Google
+            avatar: user.avatar,
+            phone: "",
+            province: "",
+            district: "",
+            ward: "",
+            address: "",
           });
         } else if (user.role === 'organizer') {
           await this.organizerModel.create({
             account_id: newAccount._id,
             name: user.name,
             email: user.email,
-            logo: user.avatar, // Lưu avatar từ Google
+            logo: user.avatar,
             events_created: 0,
+            phone: "",
+            address: "",
+            description: "",
+            weblink: "",
+            social_link: "",
           });
         }
       }
@@ -146,21 +166,11 @@ export class AuthService {
       if (role === 'user' || role === 'attendee') {
         const user = await this.userModel.findOne({ account_id: objectId }).exec();
         if (!user) throw new Error("User not found");
-        return {
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar,
-          role,
-        };
+        return { ...user.toObject(), role };
       } else if (role === 'organizer') {
         const organizer = await this.organizerModel.findOne({ account_id: objectId }).exec();
         if (!organizer) throw new Error("Organizer not found");
-        return {
-          name: organizer.name,
-          email: organizer.email,
-          avatar: organizer.logo,
-          role,
-        };
+        return { ...organizer.toObject(), role };
       }
 
       throw new Error("Invalid role");

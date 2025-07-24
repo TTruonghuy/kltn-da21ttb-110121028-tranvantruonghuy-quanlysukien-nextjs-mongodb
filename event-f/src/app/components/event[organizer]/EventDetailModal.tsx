@@ -101,11 +101,12 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
     };
     // ...phần render chi tiết như mẫu page.tsx...
     return (
-        <div className="bg-white rounded-lg pt-12">
-            <div>
-                <button onClick={onBack} className="bg-blue-100 top-32 mb-4 px-4 py-2 rounded-lg flex font-semibold items-center text-blue-950 hover:scale-102 fixed "><TiArrowBack className="w-8 h-8" /> Trở lại</button>
-                <button onClick={handleEdit} className="bg-green-100 top-32  left-287 mb-4 px-4 py-2 rounded-lg flex font-semibold items-center text-blue-950 hover:scale-102 fixed "><TiEdit className="w-8 h-8" /> Chỉnh sửa </button>
+        <div className="bg-white rounded-lg ">
+            <div className="flex justify-between items-center px-4 py-2 border-b">
+                <button onClick={onBack} className="bg-blue-100 mb-4 px-4 py-2 rounded-lg flex font-semibold items-center text-blue-950 hover:scale-102  ">Trở lại</button>
+                <button onClick={handleEdit} className="bg-green-100 mb-4 px-4 py-2 rounded-lg flex font-semibold items-center text-blue-950 hover:scale-102  "> Chỉnh sửa </button>
             </div>
+
             <div className="flex mb-10">
                 <div className="col-span-1 rounded-lg rounded-r-[0px]
                     p-4 w-100 border-l-3 border-t-3 border-b-3 border-blue-900">

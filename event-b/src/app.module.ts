@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { EventModule } from './event/event.module';
 import { TicketModule } from './ticket/ticket.module';
+import { OrganizerModule } from './organizer/organizer.module'; 
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { TicketModule } from './ticket/ticket.module';
     AuthModule,
     DatabaseModule, 
     EventModule,
-    TicketModule
+    TicketModule,
+    OrganizerModule
   ],
   controllers: [AppController],
   providers: [AppService],

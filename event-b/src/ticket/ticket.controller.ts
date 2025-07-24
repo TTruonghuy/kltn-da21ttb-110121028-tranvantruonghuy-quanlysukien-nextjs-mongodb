@@ -135,4 +135,51 @@ export class TicketController {
       return res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
   }
+
+
+
+
+  @Post('create-session-with-seatingchart')
+  @UseGuards(JwtAuthGuard)
+  async createSessionWithSeatingChart(
+    @Body() body: {
+      event_id: string;
+      start_time: Date;
+      end_time: Date;
+      seatingChart: {
+        seats: Array<{
+          seatId: string;
+          rowName: string;
+          seatNumber: number;
+          ticketType: string;
+          price: number;
+          sold: boolean;
+          position: { left: number; top: number };
+        }>;
+        ticketTypes: Array<{
+          type: string;
+          label: string;
+          color: string;
+          price: number;
+        }>;
+      };
+    },
+    @Res() res: Response,
+  ) {
+    try {
+      // 1. Tạo session
+      const session = await this.ticketService.createSession(body.event_id, body.start_time, body.end_time);
+
+      // 2. Tạo sơ đồ ghế gắn với session
+      const chart = await this.ticketService.createSeatingChart({
+        session_id: session._id,
+        seats: body.seatingChart.seats,
+        ticketTypes: body.seatingChart.ticketTypes,
+      });
+
+      return res.status(201).json({ session, seatingChart: chart });
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+  }
 }

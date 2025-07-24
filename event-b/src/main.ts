@@ -9,7 +9,9 @@ async function bootstrap() {
   // Sử dụng cookie-parser để xử lý cookies
   app.use(cookieParser()); // Middleware để đọc cookie
   app.use(bodyParser.json()); // Xử lý JSON
-  app.use(bodyParser.urlencoded({ extended: true })); // Xử lý URL-encoded
+  app.use(bodyParser.json({ limit: "30mb" })); // Tăng giới hạn lên 20MB hoặc lớn hơn nếu cần
+  app.use(bodyParser.urlencoded({ extended: true, limit: "30mb" }));
+  
 
   app.enableCors({
     origin: "http://localhost:3000", // Đảm bảo frontend chạy trên domain này

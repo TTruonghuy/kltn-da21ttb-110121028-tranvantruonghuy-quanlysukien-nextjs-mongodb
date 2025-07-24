@@ -17,6 +17,7 @@ export interface EventFormData {
     noSale: boolean;
     isOnline?: boolean;
     sessions?: any [];
+    ticketMode?: "area" | "seat" | "none";
     // nếu bạn vẫn dùng saleStartTime / saleEndTime thì khai báo thêm ở đây
 }
 
