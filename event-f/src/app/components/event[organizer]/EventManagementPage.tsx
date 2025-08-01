@@ -21,11 +21,16 @@ export default function EventManagementPage() {
     const [showCreateTicketForm, setShowCreateTicketForm] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+<<<<<<< Updated upstream
     const [showOrganizerInfo, setShowOrganizerInfo] = useState(false);
     const [organizerInfo, setOrganizerInfo] = useState<any>(null);
 
 
 
+=======
+    const [eventListTab, setEventListTab] = useState<"pending" | "approved" | "rejected">("pending");
+    const [approvedTimeFilter, setApprovedTimeFilter] = useState<"all" | "ongoing" | "past">("all");
+>>>>>>> Stashed changes
 
 
     const [user, setUser] = useState<{
@@ -115,7 +120,7 @@ export default function EventManagementPage() {
                                 className="w-10 h-10 rounded-full object-cover border"
                             />
                             <div>
-                                <span className="block font-semibold text-blue-900">{user.name}</span>
+                                <span className="block font-semibold text-blue-950">{user.name}</span>
                                 <span className="block text-xs text-gray-500">{user.email}</span>
                             </div>
                             {showUserMenu && (
@@ -164,20 +169,25 @@ export default function EventManagementPage() {
                         }}
                         className={`py-2 px-4 mb-2 text-left rounded-lg font-bold ${mainTab === "create" ? "bg-blue-100" : "bg-white"} hover:bg-blue-200`}
                     >
-                        Tạo sự kiện
+                        Sự kiện
                     </button>
                     {showCreateSubNav && mainTab === "create" && (
                         <div className="ml-2 flex flex-col">
                             <button
                                 onClick={() => setSubTab("create")}
+<<<<<<< Updated upstream
                                 className={`py-2 px-4 mb-2 text-left rounded-lg ${subTab === "create" ? "bg-blue-400 text-white" : "hover:bg-gray-100"}`}
+=======
+                                className={`block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded ${subTab === "create" ? "bg-blue-100" : "hover:bg-gray-100"}`}
+>>>>>>> Stashed changes
                             >
                                 Tạo sự kiện
                             </button>
                             <button
                                 onClick={() => setSubTab("saved")}
-                                className={`py-2 px-4 mb-2 text-left rounded-lg ${subTab === "saved" ? "bg-blue-400 text-white" : "hover:bg-gray-100"}`}
+                                className={`block w-full text-left px-4 py-2 mt-1 text-gray-700 hover:bg-gray-100 rounded ${subTab === "saved" ? "bg-blue-100" : "hover:bg-gray-100"}`}
                             >
+<<<<<<< Updated upstream
                                 Sự kiện đã lưu
                             </button>
                             <button
@@ -219,6 +229,9 @@ export default function EventManagementPage() {
                                 className={`py-2 px-4 mb-2 text-left rounded-lg ${subTab === "past" ? "bg-blue-400 text-white" : "hover:bg-gray-100"}`}
                             >
                                 Đã qua
+=======
+                                Quản lý sự kiện
+>>>>>>> Stashed changes
                             </button>
                         </div>
                     )}
@@ -279,6 +292,7 @@ export default function EventManagementPage() {
                                         onBack={() => setSelectedEventId(null)}
                                     />
                                 ) : (
+<<<<<<< Updated upstream
                                     <>
                                         <h2 className="text-xl font-bold mb-4">Sự kiện đã lưu</h2>
                                         <OrganizerEventList
@@ -323,6 +337,84 @@ export default function EventManagementPage() {
                         )}
                     </main>
                 )}
+=======
+                                    <CreateEventForm
+                                        formData={formData}
+                                        onFormDataChange={handleFormDataChange}
+                                        onNext={() => setShowCreateTicketForm(true)}
+                                    />
+                                )
+                            )}
+                            {mainTab === "create" && subTab === "saved" && (
+                                <div>
+                                    <h2 className="text-xl font-bold mb-4 text-blue-950">Sự kiện đã tạo</h2>
+                                    {/* 3 nút chuyển tab */}
+                                    <div className="flex justify-center mb-6">
+                                        <button
+                                            className={`px-10 py-1 border-b-3 border-b-green-100 ${eventListTab === "pending" ? " text-blue-950 font-bold hover:text-blue-800 hover:scale-101" : " text-gray-700 hover:scale-101"}`}
+                                            onClick={() => setEventListTab("pending")}
+                                        >
+                                            Đã lưu
+                                        </button>
+                                        <button
+                                            className={`px-10  border-b-3 border-b-blue-100 ${eventListTab === "approved" ? "text-blue-950 font-bold hover:text-blue-800 hover:scale-101" : "text-gray-700 hover:scale-101"}`}
+                                            onClick={() => setEventListTab("approved")}
+                                        >
+                                            Đã đăng
+                                        </button>
+                                        <button
+                                            className={`px-10 border-b-3 border-b-red-100 ${eventListTab === "rejected" ? "text-blue-950 font-bold hover:text-blue-800 hover:scale-101" : "text-gray-700 hover:scale-101"}`}
+                                            onClick={() => setEventListTab("rejected")}
+                                        >
+                                            Đã xoá
+                                        </button>
+                                    </div>
+
+
+
+                                    {eventListTab === "approved" && (
+                                        <div className="flex justify-end">
+
+                                            <button
+                                                className={`flex items-center mr-4 ${approvedTimeFilter === "all" ? "" : "text-gray-500"}`}
+                                                onClick={() => setApprovedTimeFilter("all")}
+                                            >
+                                                <div className="w-3 h-3 bg-blue-500 mr-1"> </div>
+                                                Tất cả
+                                            </button>
+
+                                            <button
+                                                className={`flex items-center mr-4 ${approvedTimeFilter === "ongoing" ? "" : "text-gray-500"}`}
+                                                onClick={() => setApprovedTimeFilter("ongoing")}
+                                            >
+                                                 <div className="w-3 h-3 bg-green-500 mr-1"> </div>
+                                                Đang diễn ra
+                                            </button>
+
+                                            <button
+                                                className={`flex items-center ${approvedTimeFilter === "past" ? " " : "text-gray-500"}`}
+                                                onClick={() => setApprovedTimeFilter("past")}
+                                            >
+                                                 <div className="w-3 h-3 bg-gray-500 mr-1"> </div>
+                                                Đã qua
+                                            </button>
+                                        </div>
+                                    )}
+
+
+
+                                    {/* Hiển thị danh sách theo tab */}
+                                    <OrganizerEventList
+                                        filterStatus={eventListTab}
+                                        filterTime={eventListTab === "approved" && approvedTimeFilter !== "all" ? approvedTimeFilter : undefined}
+                                    />
+                                </div>
+                            )}
+
+                        </>
+                    )}
+                </main>
+>>>>>>> Stashed changes
             </div>
         </div>
     );

@@ -6,7 +6,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response, Request } from "express"; // Import Request từ express
 import { memoryStorage } from 'multer';
-import { extname } from 'path';
+import { HttpException, HttpStatus } from '@nestjs/common';
+
 
 // Mở rộng kiểu Request để bao gồm thuộc tính user
 export interface RequestWithUser extends Request {
@@ -55,13 +56,13 @@ export class AuthController {
     @UploadedFile() image: Express.Multer.File,
   ) {
     //console.log("Register Request Body:", body); // Log thông tin request
-   // console.log("Uploaded File:", image); // Log thông tin file upload
+    // console.log("Uploaded File:", image); // Log thông tin file upload
     return this.authService.register({ ...body, image });
   }
 
   @Post('login') // http://localhost:5000/auth/login
   @HttpCode(200)
-  async login(@Body() loginDto: { email: string; password: string}, @Res() res: Response) {
+  async login(@Body() loginDto: { email: string; password: string }, @Res() res: Response) {
     console.log("Login Request Body:", loginDto); // Log thông tin request
     if (!loginDto || !loginDto.email || !loginDto.password) {
       throw new Error("Invalid login data"); // Xử lý trường hợp dữ liệu không hợp lệ
@@ -149,4 +150,20 @@ export class AuthController {
       return res.status(500).send({ message: "Internal Server Error", error: error.message });
     }
   }
+
+  @Post('send-verification-code')
+  async sendVerificationCode(@Body() body: { email: string }) {
+    await this.authService.sendVerificationCode(body.email);
+    return { message: "Đã gửi mã xác minh đến email" };
+  }
+
+  @Post('verify-email-code')
+  async verifyEmailCode(@Body() body: { email: string; code: string }) {
+    const isValid = this.authService.verifyCode(body.email, body.code);
+    if (!isValid) throw new HttpException("Mã xác minh không đúng", HttpStatus.BAD_REQUEST);
+    return { message: "Xác minh thành công" };
+  }
+
 }
+
+

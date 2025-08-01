@@ -1,14 +1,17 @@
 "use client";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { IoClose } from "react-icons/io5";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import TicketModal from "./TicketModal";
 import { EventFormData } from "@/app/components/types";
+<<<<<<< Updated upstream
 import { TiTrash } from "react-icons/ti";
 //import SeatEditor from "./SeatEditor";
 import TimePicker from 'react-time-picker';
+=======
+
+>>>>>>> Stashed changes
 
 interface TicketDraft {
     ticketName: string;
@@ -41,8 +44,9 @@ export default function CreateTicketForm({
     const [editingSessionIndex, setEditingSessionIndex] = useState<number | null>(null);
     const [editingTicketIndex, setEditingTicketIndex] = useState<number | null>(null);
     const [ticketDraft, setTicketDraft] = useState<any>(null);
-    const ticketMode = formData.ticketMode || "area";
 
+
+    const ticketMode = formData.ticketMode === "none" ? "none" : "area";
     const sessions = formData.sessions || [{ start_time: "", end_time: "", tickets: [] }];
     const defaultTicket = {
         ticketName: "",
@@ -55,9 +59,13 @@ export default function CreateTicketForm({
         description_ticket: "",
         image_ticket: null,
     };
+<<<<<<< Updated upstream
    // const [showSeatingChart, setShowSeatingChart] = useState(false);
 
+=======
+>>>>>>> Stashed changes
 
+    // Mở modal để tạo hoặc chỉnh sửa vé
     const openTicketModal = (sessionIdx: number, ticketIdx?: number) => {
         setEditingSessionIndex(sessionIdx);
         setEditingTicketIndex(ticketIdx ?? null);
@@ -99,19 +107,14 @@ export default function CreateTicketForm({
         setTicketDraft(null);
     };
 
+    // Hàm xử lý thay đổi formData
     const handleFormDataChange = (
         data: Partial<EventFormData> | ((prev: EventFormData) => EventFormData)
     ) => {
         onFormDataChange(data); // Sử dụng onFormDataChange để cập nhật formData
     };
 
-
-
-
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onFormDataChange({ noSale: e.target.checked });
-    };
-
+    // Hàm xử lý submit form
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -133,26 +136,21 @@ export default function CreateTicketForm({
             });
             const eventId = eventRes.data.event?._id || eventRes.data._id;
             if (!eventId) throw new Error("Không lấy được event_id");
-
-            // 2. Nếu không mở bán vé, chỉ tạo event
-            if (formData.ticketMode === "none" || formData.noSale) {
+            // Nếu không bán vé
+            if (ticketMode === "none") {
                 alert("Sự kiện đã được tạo thành công mà không mở bán vé!");
                 onSubmit();
                 setLoading(false);
                 return;
             }
 
-            // 3. Nếu mở bán vé, tạo các session và vé
+            // Nếu bán vé khu vực
             for (const session of formData.sessions || []) {
                 const payload: any = {
                     event_id: eventId,
                     start_time: session.start_time,
                     end_time: session.end_time,
-                };
-
-                // Vé theo khu vực
-                if (formData.ticketMode === "area") {
-                    payload.tickets = (session.tickets || []).map((ticket: TicketDraft) => ({
+                    tickets: (session.tickets || []).map((ticket: TicketDraft) => ({
                         ticket_name: ticket.ticketName,
                         ticket_price: ticket.ticketPrice,
                         ticket_quantity: ticket.ticketQuantity,
@@ -161,6 +159,7 @@ export default function CreateTicketForm({
                         sale_start_time: ticket.saleStartTime,
                         sale_end_time: ticket.saleEndTime,
                         description_ticket: ticket.description_ticket || "",
+<<<<<<< Updated upstream
                         // Nếu có trường image, cần upload ảnh trước và lấy URL, hoặc bỏ qua nếu chưa hỗ trợ
                     }));
                 }
@@ -172,6 +171,11 @@ export default function CreateTicketForm({
                  //   payload,
                 //    { withCredentials: true }
                // );
+=======
+                    })),
+                };
+                await axios.post("http://localhost:5000/ticket/create-session-with-tickets", payload, { withCredentials: true });
+>>>>>>> Stashed changes
             }
 
             alert("Tạo sự kiện, xuất diễn và vé thành công!");
@@ -190,9 +194,6 @@ export default function CreateTicketForm({
         }
     };
 
-
-
-
     // Handler cho thay đổi session
     const handleSessionChange = (idx: number, field: "start_time" | "end_time", value: string) => {
         const newSessions = [...sessions];
@@ -209,7 +210,10 @@ export default function CreateTicketForm({
                     start_time: "",
                     end_time: "",
                     tickets: [],
+<<<<<<< Updated upstream
                    // ...(newChart ? { seatingChart: newChart } : {}),
+=======
+>>>>>>> Stashed changes
                 },
             ],
         });
@@ -231,12 +235,13 @@ export default function CreateTicketForm({
     return (
         <>
             {loading && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+                <div className="fixed inset-0 flex items-center justify-center bg-gray/40 z-50">
                     <div className="bg-white px-6 py-4 rounded shadow text-lg font-semibold">
                         Đang tạo sự kiện...
                     </div>
                 </div>
             )}
+<<<<<<< Updated upstream
              : (
                 <form className="space-y-10" onSubmit={handleSubmit}>
                     <div className="flex mb-5">
@@ -362,67 +367,181 @@ export default function CreateTicketForm({
 
 
                                     </div>
+=======
+            <form className="space-y-10" onSubmit={handleSubmit}>
+                <div className="flex mb-5">
+                    <h2 className="text-xl font-bold mb-4 mr-20 text-blue-950">Tạo vé</h2>
+                    <div className="flex gap-8 mb-5">
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                name="ticketMode"
+                                value="none"
+                                checked={ticketMode === "none"}
+                                onChange={() => onFormDataChange({ ticketMode: ticketMode === "none" ? "area" : "none" })}
+                            />
+                            Không bán vé
+                        </label>
+                    </div>
+                </div>
+                {/* Nếu không bán vé thì ẩn toàn bộ phần tạo vé */}
+                {ticketMode !== "none" && (
+                    <>
+                        {sessions.map((session, idx) => (
+                            <div key={idx} className="mb-6 p-5 border-gray-500 border rounded-lg">
+                                <div className="flex">
+                                    <p className="flex font-medium text-gray-700 text-[17px] mb-5">Thời gian diễn ra sự kiện</p>
+                                    {idx > 0 && (
+                                        <button
+                                            type="button"
+                                            className="flex bg-red-500 px-4 h-8 pt-1 text-white rounded-lg ml-auto"
+                                            onClick={() => handleRemoveSession(idx)}>
+                                            Xóa
+                                        </button>
+                                    )}
+>>>>>>> Stashed changes
                                 </div>
-                            ))}
+                                <div>
+                                    <div className="flex space-x-20">
+                                        <div className="w-full">
+                                            <label htmlFor={`start_time_${idx}`} className="flex font-medium text-gray-700">
+                                                Bắt đầu <p className="text-red-700 pl-1">*</p>
+                                            </label>
+                                            <Input
+                                                id={`start_time_${idx}`}
+                                                name="start_time"
+                                                type="datetime-local"
+                                                value={session.start_time}
+                                                onChange={e => handleSessionChange(idx, "start_time", e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="w-full">
+                                            <label htmlFor={`end_time_${idx}`} className="flex font-medium text-gray-700">
+                                                Kết thúc <p className="text-red-700 pl-1">*</p>
+                                            </label>
+                                            <Input
+                                                id={`end_time_${idx}`}
+                                                name="end_time"
+                                                type="datetime-local"
+                                                value={session.end_time}
+                                                onChange={e => handleSessionChange(idx, "end_time", e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
 
-                            <button
-                                type="button"
-                                className="ml-103 bg-blue-500 text-white py-2 px-4 rounded"
-                                onClick={handleAddSession}
-                            >
-                                Tạo thêm xuất
-                            </button>
+                                    {/* Ticket session */}
+                                    {session.tickets && session.tickets.length > 0 && (
+                                        <div className="mb-2">
+                                            {session.tickets.map((ticket: TicketDraft, tIdx: number) => (
+                                                <div
+                                                    key={tIdx}
+                                                    className="cursor-pointer px-4 py-2 bg-gray-100 rounded-lg mb-2 flex justify-between items-center mt-2"
+                                                    onClick={() => openTicketModal(idx, tIdx)}
+                                                >
+                                                    <span className="font-semibold text-xs">{tIdx}. {ticket.ticketName} - {ticket.ticketPrice}</span>
+                                                    <span className="text-xs text-gray-600 flex">
+                                                        <p className="mr-1">Từ</p>
+                                                        {ticket.saleStartTime
+                                                            ? new Date(ticket.saleStartTime).toLocaleString("vi-VN")
+                                                            : ""}
+                                                          <p className="ml-4 mr-1">đến</p>
+                                                            {ticket.saleEndTime
+                                                            ? new Date(ticket.saleEndTime).toLocaleString("vi-VN")
+                                                            : ""}
+                                                    </span>
+                                                    
+                                                    <button
+                                                        className="text-red-500 hover:text-red-600 text-xs"
+                                                        type="button"
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            handleDeleteTicket(idx, tIdx);
+                                                        }}
+                                                    >
+                                                        Xoá
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
 
-                            {/* Modal nhập vé */}
-                            {isTicketModalOpen && ticketDraft && (
-                                <TicketModal
-                                    open={isTicketModalOpen}
-                                    onClose={() => {
-                                        setIsTicketModalOpen(false);
-                                        setEditingSessionIndex(null);
-                                        setEditingTicketIndex(null);
-                                        //setTicketDraft(null);
-                                    }}
-                                    formData={ticketDraft}
-                                    onFormDataChange={setTicketDraft}
+                                    {ticketMode === "area" && (
+                                        <div className="flex justify-end">
+                                            <Button
+                                                type="button"
+                                                className="bg-blue-950 hover:bg-blue-800 text-white mt-2"
+                                                onClick={() => openTicketModal(idx)}
+                                            >
+                                                Tạo loại vé
+                                            </Button>
+                                        </div>
+                                    )}
 
-                                    handleFileChange={e => {
-                                        const file = e.target.files?.[0] || null;
-                                        setTicketDraft((prev: TicketDraft | null) => ({
-                                            ...prev,
-                                            image_ticket: file, // Lưu ảnh vào ticketDraft
-                                        }));
-                                    }}
-                                    handleChange={e => {
-                                        const { name, value } = e.target;
-                                        handleFormDataChange(prev => ({
-                                            ...prev, // Giữ lại các trường đã nhập trước đó
-                                            [name]: value, // Cập nhật trường hiện tại
-                                        }));
-                                    }}
-                                    onSave={handleSaveTicket}
-                                />
-                            )}
-                        </>
-                    )}
 
-                    <div className="flex justify-between mt-8">
+                                </div>
+                            </div>
+                        ))}
+
                         <Button
                             type="button"
-                            onClick={onBack}
-                            className="bg-gray-400 hover:bg-gray-500 text-white py-3 h-10 flex"
+                            className="ml-103 bg-blue-950 hover:bg-blue-800 text-white py-2 px-4 rounded-lg"
+                            onClick={handleAddSession}
                         >
-                            Quay lại
+                            Tạo thêm xuất
                         </Button>
-                        <Button
-                            type="submit"
-                            // onClick={onSubmit}
-                            className="bg-blue-500 hover:bg-blue-600 text-white py-3 h-10 flex"
-                        >
-                            Hoàn tất
-                        </Button>
-                    </div>
-                </form>)}
+
+                        {/* Modal nhập vé */}
+                        {isTicketModalOpen && ticketDraft && (
+                            <TicketModal
+                                open={isTicketModalOpen}
+                                onClose={() => {
+                                    setIsTicketModalOpen(false);
+                                    setEditingSessionIndex(null);
+                                    setEditingTicketIndex(null);
+                                    //setTicketDraft(null);
+                                }}
+                                formData={ticketDraft}
+                                onFormDataChange={setTicketDraft}
+
+                                handleFileChange={e => {
+                                    const file = e.target.files?.[0] || null;
+                                    setTicketDraft((prev: TicketDraft | null) => ({
+                                        ...prev,
+                                        image_ticket: file, // Lưu ảnh vào ticketDraft
+                                    }));
+                                }}
+                                handleChange={e => {
+                                    const { name, value } = e.target;
+                                    handleFormDataChange(prev => ({
+                                        ...prev, // Giữ lại các trường đã nhập trước đó
+                                        [name]: value, // Cập nhật trường hiện tại
+                                    }));
+                                }}
+                                onSave={handleSaveTicket}
+                            />
+                        )}
+                    </>
+                )}
+
+                <div className="flex justify-between mt-8">
+                    <Button
+                        type="button"
+                        onClick={onBack}
+                        className="bg-gray-400 hover:bg-gray-500 text-white flex"
+                    >
+                        Quay lại
+                    </Button>
+                    <Button
+                        type="submit"
+                        // onClick={onSubmit}
+                        className="bg-blue-950 hover:bg-blue-800 text-white flex"
+                    >
+                        Hoàn tất
+                    </Button>
+                </div>
+            </form>
         </>
     );
 }

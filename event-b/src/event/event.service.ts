@@ -4,7 +4,9 @@ import { Model, Types } from 'mongoose';
 import { Event, EventDocument } from '../database/schemas/event.schema';
 import { Session, SessionDocument } from '../database/schemas/session.schema';
 import { Ticket } from '../database/schemas/ticket.schema';
+//import { Organizer } from 'src/database/schemas/organizer.schema';
 import { stat } from 'fs';
+
 
 @Injectable()
 export class EventService {
@@ -12,6 +14,7 @@ export class EventService {
     @InjectModel(Event.name) private readonly eventModel: Model<Event>,
     @InjectModel(Session.name) private readonly sessionModel: Model<SessionDocument>,
     @InjectModel(Ticket.name) private readonly ticketModel: Model<Ticket>,
+    //@InjectModel(Organizer.name) private readonly orig: Model<Ticket>,
   ) { }
 
 
@@ -115,8 +118,34 @@ export class EventService {
     try {
       // Lấy event
       const event = await this.eventModel.findById(eventId).lean();
-      if (!event) throw new Error('Event not found');
+      if (!event) return null;
 
+      let organizer: {
+        name: string;
+        logo: string;
+        description: string;
+        address?: string;
+        weblink?: string;
+        phone?: string;
+        social_link?: string;
+      } | null = null;
+
+      if (event.organizer_id) {
+
+        const organizerModel = this.eventModel.db.model('organizers');
+        const org = await organizerModel.findById(event.organizer_id).lean() as any;
+        if (org) {
+          organizer = {
+            name: org.name,
+            logo: org.logo || "",
+            description: org.description || "",
+            address: org.address || "",
+            weblink: org.weblink || "",
+            phone: org.phone || "",
+            social_link: org.social_link || "",
+          };
+        }
+      }
       // Lấy các session của event
       const sessions = await this.sessionModel.find({ event_id: event._id }).lean();
 
@@ -129,7 +158,7 @@ export class EventService {
             tickets: tickets.map(ticket => ({
               name: ticket.ticket_name,
               price: ticket.ticket_price,
-              // thêm các trường khác nếu cần
+              description: ticket.description_ticket,
             })),
           };
         })
@@ -140,8 +169,6 @@ export class EventService {
       const prices = allTickets.map(t => t.price);
       const min_price = prices.length ? Math.min(...prices) : 0;
       const max_price = prices.length ? Math.max(...prices) : 0;
-
-
 
 
 
@@ -156,11 +183,12 @@ export class EventService {
           district: event.location.district,
           province: event.location.province,
         },
-        event_type: event.event_type, // Thêm dòng này!
+        event_type: event.event_type,
         sessions: sessionsWithTickets,
         min_price,
         max_price,
         status: event.status,
+        organizer,
       };
     } catch (error) {
       console.error('Get Event Detail Error:', error);
@@ -226,8 +254,8 @@ export class EventService {
 
 
   async updateEvent(eventId: string, data: any) {
-  return this.eventModel.findByIdAndUpdate(eventId, data, { new: true });
-}
+    return this.eventModel.findByIdAndUpdate(eventId, data, { new: true });
+  }
 
 }
 
