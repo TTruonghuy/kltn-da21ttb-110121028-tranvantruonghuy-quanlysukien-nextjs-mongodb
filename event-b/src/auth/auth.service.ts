@@ -7,6 +7,8 @@ import { Model, Types } from 'mongoose';
 import { User } from '../database/schemas/user.schema';
 import { Organizer } from '../database/schemas/organizer.schema';
 import { bucket } from 'src/config/firebase.config';
+import * as nodemailer from 'nodemailer';
+
 
 @Injectable()
 export class AuthService {
@@ -178,5 +180,34 @@ export class AuthService {
       console.error("Get User Details Error:", error.message);
       throw error;
     }
+  }
+
+  private verificationCodes: Record<string, string> = {};
+
+  async sendVerificationCode(email: string) {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    this.verificationCodes[email] = code;
+
+    // Cấu hình transporter (dùng Gmail demo)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'ttruonghuy2003@gmail.com', // Thay bằng email của bạn
+        pass: 'znbdcayrnmntlehl',    // Tạo app password cho Gmail
+      },
+    });
+
+    await transporter.sendMail({
+      from: '"Event App" <ttruonghuy2003@gmail.com>',
+      to: email,
+      subject: 'Mã xác minh đăng ký Event App',
+      text: `Mã xác minh của bạn là: ${code}`,
+    });
+
+    return code;
+  }
+
+  verifyCode(email: string, code: string) {
+    return this.verificationCodes[email] === code;
   }
 }

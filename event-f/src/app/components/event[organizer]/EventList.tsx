@@ -42,9 +42,9 @@ const EventList: React.FC<EventListProps> = ({ filterType }) => {
     }, [filterType]);
 
     return (
-        <div className=" ml-2 mr-2 p-4 bg-white rounded-lg h-full">
+        <div className=" p-4 bg-white rounded-lg h-full m-2 ">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">
+                <h2 className="text-xl font-bold text-blue-950">
                     {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
                 </h2>
                 <a href="#" className="text-gray-500 text-sm flex hover:scale-102">
@@ -54,7 +54,7 @@ const EventList: React.FC<EventListProps> = ({ filterType }) => {
             <div className="grid grid-cols-4 gap-5 ">
                 {events.map((event) => (
                     <div key={event.id}
-                        className=" rounded cursor-pointer hover:opacity-90 hover:bg-gray-100"
+                        className="bg-blue-50 rounded cursor-pointer hover:opacity-90 hover:bg-blue-20"
                         onClick={() => {
                             console.log("Clicked event:", event); // Log event khi click
                             router.push(`/event/${event.id}`);
@@ -62,7 +62,7 @@ const EventList: React.FC<EventListProps> = ({ filterType }) => {
                         <img
                             src={event.image}
                             alt={event.title}
-                            className="w-full h-45 object-cover rounded mb-4"
+                            className="w-full h-45 object-cover rounded mb-4 border-2 border-blue-50 "
                         />
                         <h3 className="text-[14px] font-semibold text-left m-2">{event.title}</h3>
                         {/* giá vé nhỏ nhât - giá vé cao nhất (100.000đ - 550.000đ) */}

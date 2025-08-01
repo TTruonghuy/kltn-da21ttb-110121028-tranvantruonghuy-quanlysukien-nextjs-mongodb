@@ -6,8 +6,10 @@ import { TbZoom } from "react-icons/tb";
 import Link from "next/link";
 
 interface HeaderProps {
-  user: { email: string; name: string; avatar?: string; logo?: string;
-    role?: string } | null;
+  user: {
+    email: string; name: string; avatar?: string; logo?: string;
+    role?: string
+  } | null;
   onLogout: () => void;
   onShowAuth: () => void;
 }
@@ -34,9 +36,9 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
 
   return (
     <>
-      <header className="border-b-2 border-gray-300 bg-white text-blue-950 p-3 flex justify-between items-center w-full z-40">
+      <header className="border-b border-gray-200 bg-white text-blue-950 p-2 flex justify-between items-center w-full z-40">
         <Link href="#">
-          <Image src="/logoweb.svg" alt="Logo" width={200} height={0} className="ml-20" />
+          <Image src="/logoweb.svg" alt="Logo" width={150} height={0} className="ml-20" />
         </Link>
         <nav>
           <ul className="flex space-x-20">
@@ -72,7 +74,7 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
               className="flex items-center space-x-3 cursor-pointer menu-container relative"
               onClick={() => setMenuOpen(!menuOpen)}>
               <img
-                src={user.avatar || user.logo}
+                src={user.avatar || user.logo || "/avatar.jpg"}
                 alt="Avatar"
                 width={30}
                 height={30}
@@ -83,7 +85,11 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
                 <div className="absolute right-8 top-full mt-2 w-48 bg-white rounded-md shadow-lg z-10">
                   {user.role === "organizer" ? (
                     <button
-                      onClick={onLogout}
+                      onClick={() => {
+                        if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+                          onLogout();
+                        }
+                      }}
                       className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       Đăng xuất
@@ -131,10 +137,10 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
       </header>
 
       <div className="w-full bg-transparent flex items-center pl-7 space-x-4  pt-2">
-        <button className="bg-white rounded-lg px-6 py-2 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border ">Âm nhạc</button>
-        <button className="bg-white rounded-lg px-6 py-2 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Văn hoá nghệ thuật</button>
-        <button className="bg-white rounded-lg px-6 py-2 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Thể thao</button>
-        <button className="bg-white rounded-lg px-6 py-2 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Khác</button>
+        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border ">Âm nhạc</button>
+        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Văn hoá nghệ thuật</button>
+        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Thể thao</button>
+        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Khác</button>
       </div>
     </>
 

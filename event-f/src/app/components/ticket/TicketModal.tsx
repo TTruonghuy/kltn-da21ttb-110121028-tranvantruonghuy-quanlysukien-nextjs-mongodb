@@ -97,7 +97,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
 
 
 
-
                         <div className="w-83">
                             <label htmlFor="ticketPrice" className="font-medium text-gray-700 mb-2">
                                 Giá vé
@@ -268,7 +267,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
                                 Mô tả
                             </label>
                             <textarea
-                                className="w-105 h-34 rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 hover:scale-101"
+                                className="w-185 h-34 rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 hover:scale-101"
                                 id="description_ticket"
                                 name="description_ticket"
                                 value={formData.description_ticket ?? ""}
@@ -284,6 +283,8 @@ const TicketModal: React.FC<TicketModalProps> = ({
 
 
                         </div>
+
+                         {/*
                         <div >
                             <label htmlFor="image_ticket" className="font-medium text-gray-700">
                                 Ảnh sự vé
@@ -320,14 +321,15 @@ const TicketModal: React.FC<TicketModalProps> = ({
                                         <p className="mb-2">Chọn ảnh</p>
                                     </div>
                                 )}
-                            </div></div>
+                            </div>
+                        </div>*/}
 
                     </div>
                     {/* Nút đóng ở dưới cùng */}
                     <div className="flex justify-end mt-4">
                         <Button
                             type="button"
-                            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-6"
+                            className="bg-blue-950 hover:bg-blue-800 text-white py-2 px-8"
                             onClick={onSave}
                         >
                             Lưu

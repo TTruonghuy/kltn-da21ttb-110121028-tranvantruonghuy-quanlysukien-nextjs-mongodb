@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
+import { Button } from "@/app/components/ui/button";
 
 interface UserProfileProps {
   user: {
@@ -140,7 +141,7 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
 
         {/* Form */}
         <div className="flex-1 flex justify-center items-center py-2 flex-col">
-          <h2 className="text-2xl font-semibold mt-4">
+          <h2 className="text-2xl font-semibold mt-4 text-blue-950">
             {isOrganizer ? "Thông tin tổ chức" : "Thông tin cá nhân"}
           </h2>
           {success && <div className="text-green-600 ">Cập nhật thành công!</div>}
@@ -196,8 +197,9 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
                     name="description"
                     value={form.description || ""}
                     onChange={handleChange}
-                    className="flex-1 border rounded-lg px-3 py-2"
+                    className="flex-1 border rounded-lg px-3 py-2 h-24 resize-none"
                     placeholder="Mô tả tổ chức"
+
                   />
                 </div>
                 <div className="flex items-center mb-4">
@@ -232,6 +234,9 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
                 </div>
               </>
             )}
+
+
+
             {/* Các trường cho user thường */}
             {!isOrganizer && (
               <>
@@ -268,58 +273,57 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
               </>
             )}
             <div className="flex gap-3 mt-6 justify-end">
-              <button type="submit"
+              <Button type="submit"
                 disabled={loading || !isChanged}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                className="bg-blue-950 text-white hover:bg-blue-800 transition-colors disabled:opacity-50">
                 {loading ? "Đang cập nhật..." : "Cập nhật"}
-              </button>
+              </Button>
 
               {error && <div className="text-red-600 mt-2">{error}</div>}
 
             </div>
           </form>
 
-{isOrganizer && (
- 
-  <div className="flex items-start gap-6 mt-6 w-200  border rounded-xl shadow bg-white p-6">
-    <img
-      src={form.logo || "/default-avatar.png"}
-      alt="Avatar"
-      className="w-24 h-24 rounded-full object-cover border"
-    />
-    <div className="flex flex-col justify-center">
-      <div className="text-xl font-bold text-blue-950">{form.name}</div>
-      <div className="text-base mt-1">
-        <span className="font-semibold text-blue-950">Giới thiệu: </span>
-        {form.description}
-      </div>
-      <div className="text-gray-500 mt-1">
-        <span className="font-semibold text-blue-950">Địa chỉ: </span>
-        {form.address}
-      </div>
-      <div className="text-gray-500 mt-1">
-        <span className="font-semibold text-blue-950">Website: </span>
-        {form.weblink ? (
-          <a href={form.weblink} target="_blank" rel="noopener noreferrer" className="underline text-blue-700">
-            {form.weblink}
-          </a>
-        ) : (
-          <span className="italic text-gray-400">Chưa cập nhật</span>
-        )}
-      </div>
-      <div className="text-gray-500 mt-1">
-        <span className="font-semibold text-blue-950">Mạng xã hội: </span>
-        {form.social_link ? (
-          <a href={form.social_link} target="_blank" rel="noopener noreferrer" className="underline text-blue-700">
-            {form.social_link}
-          </a>
-        ) : (
-          <span className="italic text-gray-400">Chưa cập nhật</span>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+          {isOrganizer && (
+            <div className="flex items-start gap-6 mt-6 w-200  border rounded-xl shadow bg-white p-6">
+              <img
+                src={form.logo || "/default-avatar.png"}
+                alt="Avatar"
+                className="w-24 h-24 rounded-full object-cover border"
+              />
+              <div className="flex flex-col justify-center">
+                <div className="text-xl font-bold text-blue-950">{form.name}</div>
+                <div className="text-base mt-1">
+                  <span className="font-semibold text-blue-950">Giới thiệu: </span>
+                  {form.description}
+                </div>
+                <div className="text-gray-500 mt-1">
+                  <span className="font-semibold text-blue-950">Địa chỉ: </span>
+                  {form.address}
+                </div>
+                <div className="text-gray-500 mt-1">
+                  <span className="font-semibold text-blue-950">Website: </span>
+                  {form.weblink ? (
+                    <a href={form.weblink} target="_blank" rel="noopener noreferrer" className="underline text-blue-700">
+                      {form.weblink}
+                    </a>
+                  ) : (
+                    <span className="italic text-gray-400">Chưa cập nhật</span>
+                  )}
+                </div>
+                <div className="text-gray-500 mt-1">
+                  <span className="font-semibold text-blue-950">Mạng xã hội: </span>
+                  {form.social_link ? (
+                    <a href={form.social_link} target="_blank" rel="noopener noreferrer" className="underline text-blue-700">
+                      {form.social_link}
+                    </a>
+                  ) : (
+                    <span className="italic text-gray-400">Chưa cập nhật</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

@@ -5,16 +5,29 @@ import axios from "axios";
 import Header from "@/app/components/Header";
 import TicketSelector from '@/app/components/ticket/TicketSelector';
 import { TiLocation, TiTime, TiArrowSortedDown, TiArrowSortedUp } from "react-icons/ti";
+import { Button } from '@/app/components/ui/button';
 
 interface Ticket {
     name: string;
     price: number;
+    description?: string;
+}
+
+interface Organizer {
+    name: string;
+    logo: string;
+    description: string;
+    address?: string;
+    weblink?: string;
+    phone?: string;
+    social_link?: string;
 }
 
 interface Session {
     start_time: string;
     end_time: string;
     tickets: Ticket[];
+
 }
 
 interface EventDetail {
@@ -31,6 +44,7 @@ interface EventDetail {
     sessions: Session[];
     min_price: number;
     max_price: number;
+    organizer?: Organizer;
 }
 
 export default function Event() {
@@ -56,120 +70,160 @@ export default function Event() {
         );
     };
 
-    
+
 
     return (
         <>
-        <div className='bg-blue-100'>
-            <Header user={user} onLogout={handleLogout} onShowAuth={handleShowAuth} />
-            <div className="bg-blue-100 min-h-screen p-6 pt-2">
-                <div className="">
-                    {/* Nếu đang chọn vé thì hiển thị TicketSelector */}
-                    {showSelector ? (
-                        <TicketSelector
-                            tickets={event.sessions[0]?.tickets || []}
-                            onConfirm={selected => {
-                                // Xử lý thanh toán ở đây
-                                setShowSelector(false);
-                            }}
-                            onBack={() => setShowSelector(false)}
-                        />
-                    ) : (
-                        <>
-                            <div className='flex mb-10 justify-center'>
-                                {/* Thông tin sự kiện bên trái */}
-                                <div className="col-span-1 rounded-lg rounded-r-[0px]
-                                    p-4 w-130 border-l-3 border-t-3 border-b-3 border-blue-900">
-                                    <h1 className="text-[17px] font-bold mb-10 mt-10">{event.title}</h1>
-                                    {/* Cần thêm ảnh và tên ban tổ chức ở đây */}
-                                    <div className="flex items-center mb-2">
-                                          <p className='font-semibold mr-2'>Thời gian:</p>
-                                        <span>
-                                            {event.sessions.length > 0
-                                                ? `${new Date(event.sessions[0].start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(event.sessions[0].end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, ${new Date(event.sessions[0].start_time).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`
-                                                : ""}
-                                        </span>
-                                    </div>
-                                    <div className="mb-10 flex">
-                                        <p className='font-semibold mr-2 whitespace-nowrap'>Địa điểm:</p>
-                                        {event.location
-                                            ? [
-                                                event.location.houseNumber,
-                                                event.location.ward,
-                                                event.location.district,
-                                                event.location.province
-                                            ].filter(Boolean).join(", ")
-                                            : ""}
-                                    </div>
-                                    <div className='mt-20'>
-                                        <div className=" p-2 rounded-lg mb-2 text-sm font-semibold ">
-                                            Giá vé từ {event.min_price.toLocaleString("vi-VN")}đ đến {event.max_price.toLocaleString("vi-VN")}đ
-                                        </div>
-                                        <button
-                                            className="w-full bg-blue-700 text-white py-2 rounded-lg font-bold"
-                                            onClick={() => setShowSelector(true)}
-                                        >
-                                            Mua vé
-                                        </button>
-                                    </div>
-                                </div>
-                                {/* Ảnh sự kiện bên phải */}
-                                <div className="col-span-1 w-[60%]">
-                                    <img src={event.image} alt={event.title} className=" w-full h-full object-cover rounded-lg rounded-l-[0px] " />
-                                </div>
-                            </div>
-                            <div className='flex'>
-                                {/* Giới thiệu sự kiện */}
-                                <div className="bg-white rounded-lg p-4 mr-10 min-h-[200px] w-240">
-                                    <h2 className="font-semibold mb-4 text-[20px]">Giới thiệu sự kiện</h2>
-                                    <div className="event-description" dangerouslySetInnerHTML={{ __html: event.description }} />
-                                </div>
-                                {/* Thông tin vé */}
-                                <div className="col-span-1 bg-white rounded-lg p-4 w-100">
-                                    <h2 className="font-semibold mb-4 text-[20px]">Thông tin vé</h2>
-                                    {event.sessions.map((session, idx) => {
-                                        const isOpen = openSessions.includes(idx);
-                                        return (
-                                            <div key={idx} className="mb-2">
-                                                <div
-                                                    className="font-semibold text-[14px] mb-1 flex items-center cursor-pointer select-none"
-                                                    onClick={() => toggleSession(idx)}
-                                                >
-                                                    {isOpen ? (
-                                                        <TiArrowSortedUp className='w-6 h-6' />
-                                                    ) : (
-                                                        <TiArrowSortedDown className='w-6 h-6' />
-                                                    )}
-                                                    <span className="ml-1">
-                                                        Xuất: {new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        {" - "}
-                                                        {new Date(session.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        {" , "}
-                                                        {new Date(session.start_time).toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" })}
-                                                    </span>
-                                                </div>
-                                                {isOpen && session.tickets.map((ticket, tIdx) => (
-                                                    <div key={tIdx} className="flex justify-between items-center bg-gray-100 rounded-[8px] my-2 p-2 text-[14px]">
-                                                        <span className='font-semibold'>{ticket.name}</span>
-                                                        <span>{ticket.price.toLocaleString("vi-VN")}.đ</span>
-                                                    </div>
-                                                ))}
+            <div className='bg-blue-100'>
+                <Header user={user} onLogout={handleLogout} onShowAuth={handleShowAuth} />
+                <div className="bg-blue-100 min-h-screen p-6 pt-2">
+                    <div className="">
+                        {/* Nếu đang chọn vé thì hiển thị TicketSelector */}
+                        {showSelector ? (
+                            <TicketSelector
+                                tickets={event.sessions[0]?.tickets || []}
+                                onConfirm={selected => {
+                                    // Xử lý thanh toán ở đây
+                                    setShowSelector(false);
+                                }}
+                                onBack={() => setShowSelector(false)}
+                            />
+                        ) : (
+                            <>
+                                <div className='flex mb-5 justify-center'>
+                                    {/* Thông tin sự kiện bên trái */}
+                                    <div className="col-span-1 rounded-lg rounded-r-[0px]
+                                    p-4 w-130 bg-white">
+                                        {/* Tiêu đề */}
+                                        <h1 className="text-[17px] font-bold mb-10 mt-10">{event.title}</h1>
+                                        {/*Ảnh Tên ban tổ chức */}
+
+                                        {event.organizer && (
+                                            <div className="flex items-center mb-4">
+                                                <img src={event.organizer.logo} alt={event.organizer.name} className="w-50 h-10 rounded-full object-cover mr-3" />
+                                                <span className="font-semibold text-blue-900">{event.organizer.name}</span>
                                             </div>
-                                        );
-                                    })}
+                                        )}
+
+                                        <div className="flex items-center mb-2 ">
+                                            <p className='font-semibold mr-2'>Thời gian:</p>
+                                            <span>
+                                                {event.sessions.length > 0
+                                                    ? `${new Date(event.sessions[0].start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${new Date(event.sessions[0].end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, ${new Date(event.sessions[0].start_time).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`
+                                                    : ""}
+                                            </span>
+                                        </div>
+                                        <div className="mb-10 flex">
+                                            <p className='font-semibold mr-2 whitespace-nowrap'>Địa điểm:</p>
+                                            {event.location
+                                                ? [
+                                                    event.location.houseNumber,
+                                                    event.location.ward,
+                                                    event.location.district,
+                                                    event.location.province
+                                                ].filter(Boolean).join(", ")
+                                                : ""}
+                                        </div>
+                                        <div className='mt-20'>
+                                            <div className=" p-2 rounded-lg mb-2 text-sm font-semibold ">
+                                                Giá vé từ {event.min_price.toLocaleString("vi-VN")}đ đến {event.max_price.toLocaleString("vi-VN")}đ
+                                            </div>
+                                            <Button
+                                                className="w-full bg-blue-950 text-white py-2 rounded-lg font-bold hover:bg-blue-800"
+                                                onClick={() => setShowSelector(true)}
+                                            >
+                                                Mua vé
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    {/* Ảnh sự kiện bên phải */}
+                                    <div className="col-span-1 w-[60%]">
+                                        <img src={event.image} alt={event.title} className=" w-full h-full object-cover rounded-lg rounded-l-[0px] " />
+                                    </div>
                                 </div>
-                            </div>
-                            {/* Sự kiện liên quan */}
-                            <div className="bg-white rounded p-4 mt-6">
-                                <h2 className="font-semibold mb-2 text-base text-center text-[20px]">Sự kiện liên quan</h2>
-                                {/* Có thể render thêm các sự kiện liên quan ở đây */}
-                                <div className="h-96"></div>
-                            </div>
-                        </>
-                    )}
+                                <div className=''>
+
+
+
+                                    {/* Giới thiệu sự kiện */}
+                                    <div className="bg-white rounded-lg p-4 mr-5 min-h-[200px] w-305">
+                                        <h2 className="font-semibold mb-4 text-[20px] border-b pb-1">Giới thiệu sự kiện</h2>
+                                        <div className="event-description pt-4" dangerouslySetInnerHTML={{ __html: event.description }} />
+                                        {/* cần thêm một ô hiển thị ảnh, tên, giới thiệu của ban tổ chức của sự kiện này*/}
+                                    </div>
+
+
+                                    {/* Thông tin vé */}
+                                    <div className="col-span-1 bg-white rounded-lg p-4 w-305 mt-5 ">
+                                        <div className="flex items-center justify-between mb-4 border-b pb-2">
+                                            <h2 className="font-semibold text-[20px]  ">Thông tin vé</h2>
+                                            <Button
+                                                className="bg-blue-950 px-10 text-white py-2 rounded-lg font-bold hover:bg-blue-800"
+                                                onClick={() => setShowSelector(true)}
+                                            >
+                                                Mua vé
+                                            </Button>
+                                        </div>
+                                        {event.sessions.map((session, idx) => {
+                                            const isOpen = openSessions.includes(idx);
+                                            return (
+                                                <div key={idx} className="mb-2">
+                                                    <div
+                                                        className="font-semibold text-[14px] mb-1 flex items-center cursor-pointer select-none"
+                                                        onClick={() => toggleSession(idx)}
+                                                    >
+                                                        {isOpen ? (
+                                                            <TiArrowSortedUp className='w-6 h-6' />
+                                                        ) : (
+                                                            <TiArrowSortedDown className='w-6 h-6' />
+                                                        )}
+                                                        <span className="ml-1">
+                                                            Xuất: {new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            {" - "}
+                                                            {new Date(session.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            {" , "}
+                                                            {new Date(session.start_time).toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" })}
+                                                        </span>
+                                                    </div>
+                                                    {isOpen && session.tickets.map((ticket, tIdx) => (
+                                                        <div key={tIdx} className="bg-gray-100 rounded-[8px] my-2 p-2 text-[14px]">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className='font-semibold'>{ticket.name}</span>
+                                                                <span>{ticket.price.toLocaleString("vi-VN")}.đ</span>
+                                                            </div>
+                                                            {ticket.description && (
+                                                                <div className="text-gray-600 text-xs mt-1">{ticket.description}</div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {event.organizer && (
+                                        <div className="bg-white rounded-lg p-4 w-305 mt-5 flex items-center">
+                                            <img src={event.organizer.logo} alt={event.organizer.name} className="w-16 h-16 rounded-full object-cover mr-4" />
+                                            <div>
+                                                <div className="font-semibold text-lg">{event.organizer.name}</div>
+                                                <div className="text-gray-600">{event.organizer.description}</div>
+                                            </div>
+                                        </div>
+                                    )}
+
+
+                                </div>
+                                {/* Sự kiện liên quan */}
+                                <div className="bg-white rounded p-4 mt-6">
+                                    <h2 className="font-semibold mb-2 text-base text-center text-[20px]">Sự kiện liên quan</h2>
+                                    {/* Có thể render thêm các sự kiện liên quan ở đây */}
+                                    <div className="h-96"></div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-    </>
+        </>
     );
 }

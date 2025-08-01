@@ -61,11 +61,11 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
 
     return (
         <form className="space-y-10" >
-            <h2 className="text-xl font-bold mb-4">Thông tin sự kiện </h2>
+            <h2 className="text-xl font-bold mb-4 text-blue-950">Thông tin sự kiện </h2>
             {error && <p className="text-red-500">{error}</p>}
             <div>
-                <label htmlFor="title" className="font-medium text-gray-700 mb-2 flex">
-                    <TiPencil className="mt-1 mr-[2px]" /> Tiêu đề <p className="text-red-700 pl-1">*</p>
+                <label htmlFor="title" className="font-bold text-gray-700 mb-2 flex">
+                    Tiêu đề <p className="text-red-700 pl-1">*</p>
                 </label>
                 <Input
                     id="title"
@@ -78,7 +78,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
             </div>
 
             <div>
-                <label htmlFor="image" className="font-medium text-gray-700 mb-2 flex">
+                <label htmlFor="image" className="font-bold text-gray-700 mb-2 flex">
                     Ảnh sự kiện <p className="text-red-700 pl-1">*</p>
                 </label>
                 <div className="relative w-full bg-gray-100/50 rounded-md group">
@@ -112,7 +112,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
             </div>
 
             <div>
-                <label htmlFor="description" className="font-medium text-gray-700 mb-2 flex">
+                <label htmlFor="description" className="font-bold text-gray-700 mb-2 flex">
                     Mô tả <p className="text-red-700 pl-1">*</p>
                 </label>
                 <TinyMCEWrapper value={formData.description}
@@ -120,8 +120,8 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
             </div>
 
             <div className="space-y-2">
-                <label className="font-medium text-gray-700 mb-2 flex">
-                    <TiPencil className="mt-1 mr-[2px]" /> Loại sự kiện <p className="text-red-700 pl-1">*</p>
+                <label className="font-bold text-gray-700 mb-2 flex">
+                    Loại sự kiện <p className="text-red-700 pl-1">*</p>
                 </label>
                 <div className="flex space-x-4 justufy-center items-center">
                     <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "âm nhạc" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
@@ -134,7 +134,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
                             required
                             className="hidden"
                         />
-                        <span className=" font-semibold">Âm nhạc</span>
+                        <span className="font-medium">Âm nhạc</span>
                     </label>
 
                     <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "văn hóa nghệ thuật" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
@@ -147,7 +147,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
                             required
                             className="hidden"
                         />
-                        <span className=" font-semibold">Văn hóa nghệ thuật</span>
+                        <span className="font-medium">Văn hóa nghệ thuật</span>
                     </label>
 
                     <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "thể thao" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
@@ -160,7 +160,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
                             required
                             className="hidden"
                         />
-                        <span className=" font-semibold">Thể thao</span>
+                        <span className="font-medium">Thể thao</span>
                     </label>
 
                     <label className={`flex items-center justify-center p-3 h-10 border rounded-lg cursor-pointer ${formData.event_type === "khác" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
@@ -173,7 +173,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
                             required
                             className="hidden"
                         />
-                        <span className=" font-semibold">Khác</span>
+                        <span className="font-medium">Khác</span>
                     </label>
 
                 </div>
@@ -181,8 +181,8 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
 
             <div>
                 <div className="flex">
-                    <label htmlFor="location" className="flex font-medium text-gray-700 mb-2">
-                        <TiLocation className="mt-1 mr-[2px]" /> Địa điểm <p className="text-red-700 pl-1">*</p>
+                    <label htmlFor="location" className="flex font-bold text-gray-700 mb-2">
+                        Địa điểm <p className="text-red-700 pl-1">*</p>
                     </label>
                     {/* Checkbox sự kiện online */}
                     <div className="mb-2 ml-10">
@@ -236,7 +236,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
                 ) : (
                     <Button
                         type="button"
-                        className="bg-blue-500 hover:bg-blue-600 text-white py-3 h-10 flex"
+                        className="bg-blue-950 hover:bg-blue-800 text-white flex"
                         onClick={handleNext}
                     >
                         Tiếp tục
