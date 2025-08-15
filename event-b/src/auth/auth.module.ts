@@ -11,6 +11,8 @@ import { Organizer, OrganizerSchema } from '../database/schemas/organizer.schema
 import { AccountModule } from 'src/account/account.module';
 import { AccountService } from 'src/account/account.service';
 import { GoogleStrategy } from './google.strategy'; // Import GoogleStrategy
+import { Account, AccountSchema } from 'src/database/schemas/account.schema'; // Import Account schema
+
 
 @Module({
   imports: [
@@ -18,7 +20,8 @@ import { GoogleStrategy } from './google.strategy'; // Import GoogleStrategy
     PassportModule.register({ defaultStrategy: "jwt" }),
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
-      { name: Organizer.name, schema: OrganizerSchema }, // Đăng ký Organizer schema
+      { name: Organizer.name, schema: OrganizerSchema },
+      { name: Account.name, schema: AccountSchema }, 
     ]),
     AccountModule,
     JwtModule.registerAsync({

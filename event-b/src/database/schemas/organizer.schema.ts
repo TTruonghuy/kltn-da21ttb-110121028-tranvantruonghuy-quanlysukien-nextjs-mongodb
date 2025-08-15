@@ -34,6 +34,15 @@ export class Organizer {
 
   @Prop({ default: 0 })
   events_created: number;
+
+  @Prop()
+  bank_name: string;
+
+  @Prop()
+  bank_account_number: string;
+
+  @Prop()
+  bank_account_holder: string;
 }
 
 export const OrganizerSchema = SchemaFactory.createForClass(Organizer);

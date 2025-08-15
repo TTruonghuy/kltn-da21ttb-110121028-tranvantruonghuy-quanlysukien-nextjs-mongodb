@@ -7,25 +7,21 @@ import axios from "@/lib/axiosInstance";
 import { EventFormData } from "@/app/components/types";
 import OrganizerEventList from "./OrganizerEventList";
 import EventDetailModal from "./EventDetailModal";
-import { TiUser } from "react-icons/ti";
-import { FaSignOutAlt } from "react-icons/fa";
 import Profile from "@/app/components/users/Profile";
-//import { useUserUpdate } from "../users/useUserUpdate";
+import EventDashboard from "./EventDashboard";
+import { TiChevronLeft } from "react-icons/ti";
 
 export default function EventManagementPage() {
-    const [activeTab, setActiveTab] = useState("create-event"); // Tab mặc định là "Tạo sự kiện"
-    const [mainTab, setMainTab] = useState("event"); // "event"
-    const [subTab, setSubTab] = useState("create"); // "create" | "saved" | "deleted"
-    const [showCreateSubNav, setShowCreateSubNav] = useState(false);
+    const [activeTab, setActiveTab] = useState<"create" | "saved">("create");
     const [showProfile, setShowProfile] = useState(false);
-    const [showManageSubNav, setShowManageSubNav] = useState(false);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+    const [showDashboard, setShowDashboard] = useState(false);
     const [showCreateTicketForm, setShowCreateTicketForm] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
     const [eventListTab, setEventListTab] = useState<"pending" | "approved" | "rejected">("pending");
     const [approvedTimeFilter, setApprovedTimeFilter] = useState<"all" | "ongoing" | "past">("all");
-
+    const [showDetailModal, setShowDetailModal] = useState(false);
 
     const [user, setUser] = useState<{
         email: string;
@@ -60,9 +56,9 @@ export default function EventManagementPage() {
     ) => {
         setFormData(prev => {
             if (typeof data === "function") {
-                return data(prev); // Nếu data là hàm callback
+                return data(prev);
             } else {
-                return { ...prev, ...data }; // Nếu data là object
+                return { ...prev, ...data };
             }
         });
     };
@@ -81,7 +77,6 @@ export default function EventManagementPage() {
         };
     }, [showUserMenu]);
 
-
     useEffect(() => {
         axios
             .get("http://localhost:5000/auth/me", { withCredentials: true })
@@ -98,11 +93,6 @@ export default function EventManagementPage() {
                 setUser(null);
             });
     }, []);
-
-    const isCreateTabActive = mainTab === "create" && !showProfile;
-    const isManageTabActive = mainTab === "manage" && !showProfile;
-    const isInfoTabActive = showProfile;
-
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -125,44 +115,31 @@ export default function EventManagementPage() {
                         </div>
                     )}
 
-                    {/* Tạo sự kiện */}
                     <button
                         onClick={() => {
-                            setMainTab("create");
-                            setShowCreateSubNav(!showCreateSubNav);
-                            setShowManageSubNav(false);
+                            setActiveTab("create");
                             setShowProfile(false);
                         }}
-                        className={`block w-full text-left px-4 py-2 mb-2 text-gray-700 hover:bg-gray-100 rounded ${isCreateTabActive ? "bg-blue-100" : "bg-white"} hover:bg-blue-200`}
+                        className={`block w-full text-left px-4 py-2 mb-2 text-gray-700 hover:bg-gray-100 rounded ${activeTab === "create" && !showProfile ? "bg-blue-100" : "bg-white"} hover:bg-blue-200`}
                     >
-                        Sự kiện
+                        Tạo sự kiện
                     </button>
-                    {showCreateSubNav && isCreateTabActive && (
-                        <div className="ml-2 flex flex-col">
-                            <button
-                                onClick={() => setSubTab("create")}
-                                className={`block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded ${subTab === "create" ? "bg-blue-100" : "hover:bg-gray-100"}`}
-                            >
-                                Tạo sự kiện
-                            </button>
-                            <button
-                                onClick={() => setSubTab("saved")}
-                                className={`block w-full text-left px-4 py-2 mt-1 text-gray-700 hover:bg-gray-100 rounded ${subTab === "saved" ? "bg-blue-100" : "hover:bg-gray-100"}`}
-                            >
-                                Quản lý sự kiện
-                            </button>
-                        </div>
-                    )}
+                    <button
+                        onClick={() => {
+                            setActiveTab("saved");
+                            setShowProfile(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 mb-2 text-gray-700 hover:bg-gray-100 rounded ${activeTab === "saved" && !showProfile ? "bg-blue-100" : "bg-white"} hover:bg-blue-200`}
+                    >
+                        Quản lý sự kiện
+                    </button>
 
-                    {/* Thông tin */}
                     {user && (
                         <div className="flex flex-col gap-2">
                             <button
-                                className={`block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded ${isInfoTabActive ? "bg-blue-100" : "bg-white"} hover:bg-blue-200`}
+                                className={`block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded ${showProfile ? "bg-blue-100" : "bg-white"} hover:bg-blue-200`}
                                 onClick={() => {
                                     setShowProfile(true);
-                                    setShowCreateSubNav(false);
-                                    setShowManageSubNav(false);
                                 }}
                             >
                                 Thông tin
@@ -187,19 +164,34 @@ export default function EventManagementPage() {
                     )}
                 </nav>
 
-                <main className="flex-grow p-10 pt-12 bg-white mr-5 mb-5 ml-[300px]">
-                    {showProfile && user ? (
+                <main className="flex-grow p-10 pl-0 pt-12 bg-white mr-5 mb-5 ml-[300px]">
+                    
+                    
+                    {showDashboard && selectedEventId ? (
+                        <div>
+                            <button
+                                className=" px-2 pl-0 ml-6 py-1 text-blue-950 rounded hover:bg-blue-100 font-bold"
+                                onClick={() => {
+                                    setShowDashboard(false);
+                                    setSelectedEventId(null);
+                                }}
+                            >
+                                <TiChevronLeft className="inline-block " /> Trở lại
+                            </button>
+                            <EventDashboard eventId={selectedEventId} />
+                        </div>
+                        
+                    ) : showProfile && user ? (
                         <Profile
                             user={user}
                             onUpdate={updated => {
                                 setUser({ ...updated, role: user.role });
-                                // Không đóng form, giữ lại tab Thông tin
                             }}
                             onDelete={() => setShowProfile(false)}
                         />
                     ) : (
                         <>
-                            {subTab === "create" && (
+                            {activeTab === "create" && (
                                 showCreateTicketForm ? (
                                     <CreateTicketForm
                                         formData={formData}
@@ -207,7 +199,7 @@ export default function EventManagementPage() {
                                         onBack={() => setShowCreateTicketForm(false)}
                                         onSubmit={() => {
                                             setShowCreateTicketForm(false);
-                                            setSubTab("saved");
+                                            setActiveTab("saved");
                                         }}
                                     />
                                 ) : (
@@ -218,10 +210,10 @@ export default function EventManagementPage() {
                                     />
                                 )
                             )}
-                            {mainTab === "create" && subTab === "saved" && (
+
+                            {activeTab === "saved" && (
                                 <div>
                                     <h2 className="text-xl font-bold mb-4 text-blue-950">Sự kiện đã tạo</h2>
-                                    {/* 3 nút chuyển tab */}
                                     <div className="flex justify-center mb-6">
                                         <button
                                             className={`px-10 py-1 border-b-3 border-b-green-100 ${eventListTab === "pending" ? " text-blue-950 font-bold hover:text-blue-800 hover:scale-101" : " text-gray-700 hover:scale-101"}`}
@@ -243,47 +235,36 @@ export default function EventManagementPage() {
                                         </button>
                                     </div>
 
-
-
                                     {eventListTab === "approved" && (
                                         <div className="flex justify-end">
-
-                                            <button
-                                                className={`flex items-center mr-4 ${approvedTimeFilter === "all" ? "" : "text-gray-500"}`}
-                                                onClick={() => setApprovedTimeFilter("all")}
-                                            >
-                                                <div className="w-3 h-3 bg-blue-500 mr-1"> </div>
-                                                Tất cả
-                                            </button>
-
                                             <button
                                                 className={`flex items-center mr-4 ${approvedTimeFilter === "ongoing" ? "" : "text-gray-500"}`}
                                                 onClick={() => setApprovedTimeFilter("ongoing")}
                                             >
-                                                 <div className="w-3 h-3 bg-green-500 mr-1"> </div>
-                                                Đang diễn ra
+                                                <div className="w-3 h-3 bg-blue-500 mr-1 rounded"> </div>
+                                                Đang mở bán
                                             </button>
 
                                             <button
                                                 className={`flex items-center ${approvedTimeFilter === "past" ? " " : "text-gray-500"}`}
                                                 onClick={() => setApprovedTimeFilter("past")}
                                             >
-                                                 <div className="w-3 h-3 bg-gray-500 mr-1"> </div>
+                                                <div className="w-3 h-3 bg-gray-500 mr-1 rounded"> </div>
                                                 Đã qua
                                             </button>
                                         </div>
                                     )}
 
-
-
-                                    {/* Hiển thị danh sách theo tab */}
                                     <OrganizerEventList
                                         filterStatus={eventListTab}
                                         filterTime={eventListTab === "approved" && approvedTimeFilter !== "all" ? approvedTimeFilter : undefined}
+                                        onSelectEvent={(id) => {
+                                            setSelectedEventId(id);
+                                            setShowDashboard(true);
+                                        }}
                                     />
                                 </div>
                             )}
-
                         </>
                     )}
                 </main>

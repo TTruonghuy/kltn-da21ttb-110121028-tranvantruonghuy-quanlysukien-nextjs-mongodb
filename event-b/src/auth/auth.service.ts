@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { Model, Types } from 'mongoose';
 import { User } from '../database/schemas/user.schema';
 import { Organizer } from '../database/schemas/organizer.schema';
+import { Account } from 'src/database/schemas/account.schema';
 import { bucket } from 'src/config/firebase.config';
 import * as nodemailer from 'nodemailer';
 
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Organizer.name) private readonly organizerModel: Model<Organizer>,
+    @InjectModel(Account.name) private readonly accountModel: Model<Account>,
   ) { }
 
   async register(data: { email: string; password: string; role: string; name: string; image?: Express.Multer.File }) {
@@ -72,6 +74,9 @@ export class AuthService {
           description: "",
           weblink: "",
           social_link: "",
+          bank_name: "",
+          bank_account_number: "",
+          bank_account_holder: "",
         });
       }
 
@@ -140,6 +145,9 @@ export class AuthService {
             description: "",
             weblink: "",
             social_link: "",
+            bank_name: "",
+            bank_account_number: "",
+            bank_account_holder: "",
           });
         }
       }
@@ -173,7 +181,20 @@ export class AuthService {
         const organizer = await this.organizerModel.findOne({ account_id: objectId }).exec();
         if (!organizer) throw new Error("Organizer not found");
         return { ...organizer.toObject(), role };
-      }
+      } else if (role === 'admin') {
+      // Lấy thông tin từ bảng Account
+      const adminAccount = await this.accountModel.findById(objectId).exec();
+      if (!adminAccount) throw new Error("Admin account not found");
+
+      return {
+        _id: adminAccount._id,
+        email: adminAccount.email,
+        role: adminAccount.role,
+        status: adminAccount.status,
+        is_verified: adminAccount.is_verified,
+        name: "Administrator" // Nếu muốn hiển thị tên
+      };
+    }
 
       throw new Error("Invalid role");
     } catch (error) {
@@ -188,12 +209,12 @@ export class AuthService {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     this.verificationCodes[email] = code;
 
-    // Cấu hình transporter (dùng Gmail demo)
+   
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'ttruonghuy2003@gmail.com', // Thay bằng email của bạn
-        pass: 'znbdcayrnmntlehl',    // Tạo app password cho Gmail
+        user: 'ttruonghuy2003@gmail.com', 
+        pass: process.env.GMAIL_APP_PASSWORD
       },
     });
 

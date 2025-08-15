@@ -9,8 +9,8 @@ interface TicketDraft {
     ticketQuantity: number;
     minPerOrder: number;
     maxPerOrder: number;
-    saleStartTime: string;
-    saleEndTime: string;
+    //saleStartTime: string;
+    //saleEndTime: string;
     description_ticket: string;
     image_ticket: File | string | null;
 }
@@ -109,8 +109,10 @@ const TicketModal: React.FC<TicketModalProps> = ({
                                     pattern="[0-9.]*"
                                     inputMode="numeric"
                                     value={
-                                        formData.ticketPrice
-                                            ? formData.ticketPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                                        formData.ticketPrice !== undefined
+                                            ? formData.ticketPrice === 0
+                                                ? "0"
+                                                : formData.ticketPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
                                             : ""
                                     }
                                     onChange={e => {
@@ -215,59 +217,12 @@ const TicketModal: React.FC<TicketModalProps> = ({
 
 
                     <div className="flex mb-10">
-                        <div className="flex flex-col mr-20">
-                            <div className=" w-full mb-10">
-                                <label htmlFor="saleStartTime" className="font-medium text-gray-700 mb-2">
-                                    Thời gian bắt đầu bán
-                                </label>
-                                <Input
-                                    id="saleStartTime"
-                                    name="saleStartTime"
-                                    type="datetime-local"
-                                    value={formData.saleStartTime ?? ""}
-                                    onChange={e => {
-                                        const { name, value } = e.target;
-                                        onFormDataChange(prev => ({
-                                            ...prev,
-                                            [name]: value,
-                                        }));
-                                    }}
-                                    required
-                                />
-                            </div>
-
-
-
-
-
-                            <div className="w-full">
-                                <label htmlFor="saleEndTime" className="font-medium text-gray-700 mb-2">
-                                    Thời gian kết thúc bán
-                                </label>
-                                <Input
-                                    id="saleEndTime"
-                                    name="saleEndTime"
-                                    type="datetime-local"
-                                    value={formData.saleEndTime ?? ""}
-                                    onChange={e => {
-                                        const { name, value } = e.target;
-                                        onFormDataChange(prev => ({
-                                            ...prev,
-                                            [name]: value,
-                                        }));
-                                    }}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-
                         <div className="flex flex-col w-full mr-2 ">
                             <label htmlFor="description_ticket" className="font-medium text-gray-700">
                                 Mô tả
                             </label>
                             <textarea
-                                className="w-185 h-34 rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 hover:scale-101"
+                                className="w-255 h-34 rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 hover:scale-101"
                                 id="description_ticket"
                                 name="description_ticket"
                                 value={formData.description_ticket ?? ""}
@@ -284,7 +239,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
 
                         </div>
 
-                         {/*
+                        {/*
                         <div >
                             <label htmlFor="image_ticket" className="font-medium text-gray-700">
                                 Ảnh sự vé

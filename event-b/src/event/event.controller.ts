@@ -1,23 +1,50 @@
-import { Controller, Post, Put, Body, UseGuards, Req, Res, UseInterceptors, UploadedFile, Get, Param } from '@nestjs/common';
+import { Controller, Post, Put, Body, UseGuards, Req, Res, UseInterceptors, UploadedFile, Get, Param, Query, Inject } from '@nestjs/common';
 import { EventService } from './event.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RequestWithUser } from '../auth/auth.controller'; // Import RequestWithUser
+import { RequestWithUser } from '../auth/auth.controller';
 import { Response } from 'express';
 import { memoryStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { bucket } from 'src/config/firebase.config';
-import { Query } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Organizer, OrganizerDocument } from '../database/schemas/organizer.schema';
+import { Model, Types } from 'mongoose';
+import { InternalServerErrorException } from '@nestjs/common';
+import { MailService } from '../mail/mail.service';
+
+
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) { }
+  constructor(
+    private readonly eventService: EventService,private readonly mailService: MailService,
+    @InjectModel(Organizer.name) private readonly organizerModel: Model<OrganizerDocument>,
+  ) { }
+
+
+  @Get('payment-list')
+  @UseGuards(JwtAuthGuard)
+  async getEventsForPayment(@Query('showPaid') showPaid?: string) {
+    return this.eventService.getEventsForPayment(showPaid === "true");
+  }
+
+  @Put(':id/confirm-payment')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async confirmEventPayment(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.eventService.confirmEventPayment(id, file);
+  }
+
 
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   async updateEvent(
     @Param('id') id: string,
-    @Body() body: any,
+    @Body() body: any, // Consider using a DTO here
     @Res() res: Response
   ) {
     try {
@@ -28,61 +55,68 @@ export class EventController {
     }
   }
 
-
-
   @Put(':id/status')
   @UseGuards(JwtAuthGuard)
   async updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
     return this.eventService.updateStatus(id, body.status);
   }
 
-
-
+  @Get('top-events')
+  async getTopEvents(@Res() res: Response) {
+    try {
+      const events = await this.eventService.getTopEventsByTickets(6);
+      return res.status(200).json(events);
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+  }
 
 
   @Get('my-events')
   @UseGuards(JwtAuthGuard)
   async getMyEvents(@Req() req: RequestWithUser, @Res() res: Response) {
     try {
-      console.log('req.user:', req.user); // Xem userId thực tế
-      const organizerId = req.user?.userId;
-      const events = await this.eventService.getEventsByOrganizer(organizerId);
-      console.log('Events found:', events); // Xem kết quả truy vấn
+      const accountId = req.user?.userId;
+      console.log('accountId from token:', accountId);
+
+      // Ép sang ObjectId để tìm kiếm
+      const organizer = await this.organizerModel.findOne({
+        account_id: new Types.ObjectId(accountId),
+      });
+
+      console.log('Found organizer:', organizer);
+
+      if (!organizer) {
+        return res.status(404).send({ message: 'Organizer not found' });
+      }
+      console.log('Calling getEventsByOrganizer with organizerId:', organizer._id);
+      const events = await this.eventService.getEventsByOrganizer(organizer._id as Types.ObjectId);
+
       return res.status(200).send({ events });
     } catch (error) {
+      console.error('Error in getMyEvents:', error);
       return res.status(500).send({ message: 'Internal Server Error', error: error.message });
     }
   }
-
-
-
 
   @Get('list')
   async getEvents(
-    @Res() res: Response,
-    @Query('event_type') eventType?: string, // Lọc theo loại sự kiện nếu cần
-
+    @Query('event_type') eventType?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
   ) {
     try {
-      const events = await this.eventService.getEvents(eventType ? { event_type: eventType } : {});
-      return res.status(200).send(events);
+      const filter: any = {};
+      if (eventType) filter.event_type = eventType;
+      if (status) filter.status = status;
+      if (search) filter.title = { $regex: search, $options: 'i' };
+      const events = await this.eventService.getEvents(filter);
+      return events;
     } catch (error) {
-      console.error('Get Events Error:', error);
-      return res.status(500).send({ message: 'Internal Server Error', error: error.message });
+      throw new InternalServerErrorException(error.message);
     }
   }
 
-
-  @Get(':id')
-  async getEventDetail(@Param('id') id: string, @Res() res: Response) {
-    try {
-      // Lấy event, sessions, tickets từ DB
-      const event = await this.eventService.getEventDetail(id);
-      return res.status(200).json(event);
-    } catch (error) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-  }
 
   @Post('upload-image')
   @UseGuards(JwtAuthGuard)
@@ -96,8 +130,9 @@ export class EventController {
     },
   }))
   async uploadImage(
-    @UploadedFile() image: Express.Multer.File,
     @Res() res: Response,
+    @UploadedFile() image?: Express.Multer.File,
+
   ) {
     try {
       let imageUrl = '';
@@ -124,11 +159,10 @@ export class EventController {
     }
   }
 
-
   @Post('create')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image', {
-    storage: memoryStorage(), // Sử dụng memoryStorage để lưu file trong bộ nhớ
+    storage: memoryStorage(),
     fileFilter: (req, file, callback) => {
       if (!file.mimetype.startsWith('image/')) {
         return callback(new Error('Only image files are allowed!'), false);
@@ -136,7 +170,6 @@ export class EventController {
       callback(null, true);
     },
   }))
-
   async createEvent(
     @Body() body: {
       title: string;
@@ -149,15 +182,25 @@ export class EventController {
       };
       event_type: string;
     },
-
-    @UploadedFile() image: Express.Multer.File, // Nhận file upload
-    @Req() req: RequestWithUser, // Sử dụng RequestWithUser
+    @Req() req: RequestWithUser,
     @Res() res: Response,
+    @UploadedFile() image?: Express.Multer.File,
+
   ) {
     try {
-      const organizerId = req.user?.userId; // Lấy ID của ban tổ chức từ JWT
+      const organizer = await this.organizerModel.findOne({
+        account_id: new Types.ObjectId(req.user.userId)
+      });
+      console.log('req.user:', req.user);
+      console.log('Searching Organizer with account_id:', req.user?.userId);
+
+      if (!organizer) {
+        return res.status(403).json({ message: 'Organizer not found' });
+      }
+
+      const organizerId = (organizer._id as Types.ObjectId).toString();
       if (!organizerId) {
-        return res.status(403).send({ message: 'Unauthorized' });
+        return res.status(403).json({ message: 'Unauthorized' });
       }
 
       let imageUrl = '';
@@ -189,14 +232,58 @@ export class EventController {
 
       const event = await this.eventService.createEvent({
         ...body,
-        image: imageUrl, // Lưu URL của ảnh vào cơ sở dữ liệu
+        image: imageUrl,
         organizer_id: organizerId
       });
-      return res.status(201).send({ message: 'Event created successfully', event });
+      return res.status(201).json({ message: 'Event created successfully', event });
     } catch (error) {
       console.log("Request body:", body);
       console.error('Create Event Error:', error);
-      return res.status(500).send({ message: 'Internal Server Error', error: error.message });
+      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
   }
-};
+
+
+  @Get(':eventId/dashboard')
+  async getDashboard(@Param('eventId') eventId: string) {
+    return await this.eventService.getEventDashboard(eventId);
+  }
+
+
+
+  @Get('admin-list')
+  //@UseGuards(JwtAuthGuard) // Chỉ cho admin, có thể thêm guard kiểm tra role
+  async getAdminEvents(
+    @Query('tab') tab: 'approval' | 'selling' | 'past' = 'approval',
+    @Query('search') search?: string,
+  ) {
+    return this.eventService.getAdminEvents(tab, search);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  @Get(':id')
+  async getEventDetail(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const event = await this.eventService.getEventDetail(id);
+      return res.status(200).json(event);
+    } catch (error) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+  }
+
+}

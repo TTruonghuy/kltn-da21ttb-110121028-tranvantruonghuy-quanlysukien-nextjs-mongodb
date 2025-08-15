@@ -79,7 +79,7 @@ export default function CreateTicketForm({
         const newSessions = [...sessions];
         if (!newSessions[editingSessionIndex].tickets) newSessions[editingSessionIndex].tickets = [];
 
-        const ticketToSave = { ...defaultTicket, ...ticketDraft };
+        const ticketToSave = { ...defaultTicket, ...ticketDraft,  };
         const { imagePreviewUrl, ...ticketDataToSave } = ticketDraft;
 
         if (editingTicketIndex !== null && editingTicketIndex !== undefined) {
@@ -145,8 +145,8 @@ export default function CreateTicketForm({
                         ticket_quantity: ticket.ticketQuantity,
                         min_per_order: ticket.minPerOrder,
                         max_per_order: ticket.maxPerOrder,
-                        sale_start_time: ticket.saleStartTime,
-                        sale_end_time: ticket.saleEndTime,
+                        //sale_start_time: ticket.saleStartTime,
+                       // sale_end_time: ticket.saleEndTime,
                         description_ticket: ticket.description_ticket || "",
                     })),
                 };
@@ -284,7 +284,7 @@ export default function CreateTicketForm({
                                                     onClick={() => openTicketModal(idx, tIdx)}
                                                 >
                                                     <span className="font-semibold text-xs">{tIdx}. {ticket.ticketName} - {ticket.ticketPrice}</span>
-                                                    <span className="text-xs text-gray-600 flex">
+                                                   {/*  <span className="text-xs text-gray-600 flex">
                                                         <p className="mr-1">Từ</p>
                                                         {ticket.saleStartTime
                                                             ? new Date(ticket.saleStartTime).toLocaleString("vi-VN")
@@ -293,7 +293,7 @@ export default function CreateTicketForm({
                                                             {ticket.saleEndTime
                                                             ? new Date(ticket.saleEndTime).toLocaleString("vi-VN")
                                                             : ""}
-                                                    </span>
+                                                    </span> */}
                                                     
                                                     <button
                                                         className="text-red-500 hover:text-red-600 text-xs"

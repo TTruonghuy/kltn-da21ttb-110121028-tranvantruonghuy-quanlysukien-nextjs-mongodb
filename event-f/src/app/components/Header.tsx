@@ -7,8 +7,11 @@ import Link from "next/link";
 
 interface HeaderProps {
   user: {
-    email: string; name: string; avatar?: string; logo?: string;
-    role?: string
+    email: string;
+    name: string;
+    avatar?: string;
+    logo?: string;
+    role?: string;
   } | null;
   onLogout: () => void;
   onShowAuth: () => void;
@@ -18,9 +21,7 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  //console.log("User in Header:", user?.role);
   const listItemClass = "font-semibold flex text-[13px] cursor-pointer";
-
 
   // Đóng menu khi click ra ngoài
   useEffect(() => {
@@ -35,50 +36,61 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
   }, [menuOpen]);
 
   return (
-    <>
-      <header className="border-b border-gray-200 bg-white text-blue-950 p-2 flex justify-between items-center w-full z-40">
-        <Link href="#">
-          <Image src="/logoweb.svg" alt="Logo" width={150} height={0} className="ml-20" />
-        </Link>
-        <nav>
-          <ul className="flex space-x-20">
-            <li className={listItemClass}>
-              <div className="flex items-center relative">
-                <div className="flex items-center border border-gray-300 rounded-[10px] h-8">
-                  <TbZoom className="text-gray-500 w-5 h-5 mr-2 ml-2" />
-                  <input
-                    type="text"
-                    className="outline-none text-sm text-gray-700 w-60"
-                  />
-                </div>
-
-                <button className="hover:scale-102 bg-white absolute text-blue-950 font-semibold ml-[-12px] border border-gray-300 w-20 rounded-[10px] h-9 right-0 ">
-                  Tìm kiếm
-                </button>
+    <header className="border-b border-gray-200 bg-white text-blue-950 pt-2 flex justify-between items-center w-full z-40">
+      <Link href="/">
+        <Image src="/logoweb.png" alt="Logo" width={90} height={0} className="ml-30 mb-2" />
+      </Link>
+      <nav className="flex items-center">
+        <ul className="flex space-x-20">
+          <li className={listItemClass}>
+            <div className="flex items-center relative">
+              <div className="flex items-center border border-gray-300 rounded-[10px] h-8">
+                <TbZoom className="text-gray-500 w-5 h-5 mr-2 ml-2" />
+                <input
+                  type="text"
+                  className="outline-none text-sm text-gray-700 w-60"
+                />
               </div>
+
+              <button className="hover:scale-102 bg-white absolute text-blue-950 font-semibold ml-[-12px] border border-gray-300 w-20 rounded-[10px] h-9 right-0 ">
+                Tìm kiếm
+              </button>
+            </div>
+          </li>
+          {user?.role === "organizer" && (
+            <li
+              onClick={() => window.open("/event-management", "_blank")}
+              className={listItemClass}
+            >
+              QUẢN LÝ SỰ KIỆN
             </li>
-            {user?.role === "organizer" && (
-              <li
-                onClick={() => window.open("/event-management", "_blank")}
-                className={listItemClass}
-              >
-                QUẢN LÝ SỰ KIỆN
-              </li>
-            )}
-          </ul>
-        </nav>
-        <div className="relative">
-          {user ? (
+          )}
+        </ul>
+      </nav>
+
+      <div className="relative">
+        {user ? (
+          user.role === "admin" ? (
+            // ✅ Nếu là admin thì chỉ hiển thị nút "Tới trang quản trị"
+            <button
+              onClick={() => router.push("/admin")}
+              className="mr-10 text-blue-950 text-sm font-semibold transition hover:underline"
+            >
+              TRANG QUẢN TRỊ
+            </button>
+          ) : (
+            // ✅ Người dùng bình thường hoặc organizer
             <div
               ref={menuRef}
               className="flex items-center space-x-3 cursor-pointer menu-container relative"
-              onClick={() => setMenuOpen(!menuOpen)}>
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
               <img
                 src={user.avatar || user.logo || "/avatar.jpg"}
                 alt="Avatar"
                 width={30}
                 height={30}
-                className="rounded-full"
+                className="rounded-full border"
               />
               <span className="font-semibold pr-10">{user.name}</span>
               {menuOpen && (
@@ -106,6 +118,10 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
                         Hồ sơ
                       </button>
                       <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          router.push("/users");
+                        }}
                         className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Vé của tôi
@@ -121,28 +137,20 @@ export default function Header({ user, onLogout, onShowAuth }: HeaderProps) {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="relative mr-20 w-[99px] h-[30px] flex items-center justify-center group">
-              <div className="absolute inset-0 bg-[url('/boder-login.svg')] bg-center bg-contain transition group-hover:scale-109"></div>
-              <button
-                onClick={onShowAuth}
-                className="relative text-blue-950 text-center font-semibold text-[14px] group-active:scale-90 
+          )
+        ) : (
+          <div className="relative mr-11 w-[99px] h-[30px] flex items-center justify-center group">
+            <div className="absolute inset-0 bg-[url('/boder-login.svg')] bg-center bg-contain transition group-hover:scale-109"></div>
+            <button
+              onClick={onShowAuth}
+              className="relative text-blue-950 text-center font-semibold text-[14px] group-active:scale-90 
                        duration-150"
-              >
-                ĐĂNG NHẬP
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
-      <div className="w-full bg-transparent flex items-center pl-7 space-x-4  pt-2">
-        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border ">Âm nhạc</button>
-        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Văn hoá nghệ thuật</button>
-        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Thể thao</button>
-        <button className="bg-white rounded-lg px-6 py-1 font-semibold text-blue-950 hover:bg-blue-200 hover:scale-102 transition border">Khác</button>
+            >
+              ĐĂNG NHẬP
+            </button>
+          </div>
+        )}
       </div>
-    </>
-
+    </header>
   );
 }

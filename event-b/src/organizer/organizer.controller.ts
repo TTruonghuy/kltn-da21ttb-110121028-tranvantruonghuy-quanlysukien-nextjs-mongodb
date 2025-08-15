@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Req, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Put, Body, Req, UseGuards, UseInterceptors, UploadedFile, Patch, Param } from '@nestjs/common';
 import { OrganizerService } from './organizer.service';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -51,4 +51,17 @@ export class OrganizerController {
     });
     return updated;
   }
+
+
+  @Get('/admin/organizer-summary')
+  async getAdminOrganizerSummary() {
+    return this.organizerService.getAdminOrganizerSummary();
+  }
+
+  @Patch('/admin/organizer/:id/status')
+  async setOrganizerStatus(@Param('id') id: string, @Body() body: { status: string }) {
+    await this.organizerService.setOrganizerStatus(id, body.status);
+    return { success: true };
+  }
+
 }

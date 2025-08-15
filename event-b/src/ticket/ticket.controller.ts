@@ -37,8 +37,8 @@ export class TicketController {
         ticket_quantity: number;
         min_per_order: number;
         max_per_order: number;
-        sale_start_time: Date;
-        sale_end_time: Date;
+       // sale_start_time: Date;
+       // sale_end_time: Date;
         description_ticket?: string;
       };
     },
@@ -52,7 +52,7 @@ export class TicketController {
         return res.status(400).json({ message: 'Start time must be before end time' });
       }
 
-      // 1. Tạo Session (xuất diễn)
+      // 1.  Tạo Session (xuất diễn)
       const session = await this.ticketService.createSession(event_id, start_time, end_time);
 
 
@@ -77,7 +77,7 @@ export class TicketController {
           });
           imageUrl = url;
           console.log('File uploaded successfully. URL:', imageUrl);
-        } catch (error) {
+       } catch (error) {
           console.error('Error uploading image to Firebase:', error);
           throw new Error('Failed to upload image');
         }
@@ -86,7 +86,7 @@ export class TicketController {
       const ticket = await this.ticketService.createTicket({
         ...ticket_data,
         session_id: session._id, // Lưu ID của session vào vé
-        image: imageUrl, // Lưu URL ảnh vào cơ sở dữ liệu
+        //image: imageUrl, // Lưu URL ảnh vào cơ sở dữ liệu
       });
       return res.status(201).json(ticket);
     } catch (error) {
@@ -109,8 +109,8 @@ export class TicketController {
         ticket_quantity: number;
         min_per_order: number;
         max_per_order: number;
-        sale_start_time: Date;
-        sale_end_time: Date;
+        //sale_start_time: Date;
+        //sale_end_time: Date;
         description_ticket?: string;
         image?: string; // Nếu muốn upload ảnh, cần xử lý thêm
       }>;
@@ -180,6 +180,17 @@ export class TicketController {
       return res.status(201).json({ session, seatingChart: chart });
     } catch (error) {
       return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+  }
+
+  // Endpoint mới: check-in
+  @Post('check-in')
+  @UseGuards(JwtAuthGuard) // Bảo vệ, chỉ organizer/staff quét được
+  async checkIn(@Body('qr_data') qrData: string) {
+    try {
+      return await this.ticketService.checkInTicket(qrData);
+    } catch (error) {
+      return { success: false, message: error.message };
     }
   }
 }

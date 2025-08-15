@@ -8,7 +8,10 @@ import CreateEventForm from "@/app/components/event[organizer]/CreateEventForm";
 import axios from "@/lib/axiosInstance";
 import Footer from "@/app/components/Footer";
 import Header from "@/app/components/Header";
-import EventList from "@/app/components/event[organizer]/EventList";
+import EventList from "@/app/components/event/EventList";
+import Slider from "@/app/components/Slider";
+import Filler from "@/app/components/Filler";
+
 
 export default function Home() {
   const router = useRouter();
@@ -17,6 +20,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const searchParams = useSearchParams();
+  const eventType = searchParams.get("type") || "";
 
 
   useEffect(() => {
@@ -25,27 +29,34 @@ export default function Home() {
     }
   }, [searchParams]);
 
-
   // Fetch user data on mount
   useEffect(() => {
     axios
       .get("http://localhost:5000/auth/me", { withCredentials: true })
       .then((res) => {
         if (res.data && res.data.user) {
-          setUser(res.data.user); // Đảm bảo user chứa name, email, và avatar
+          const fetchedUser = res.data.user;
+          setUser(fetchedUser);
+
+          // Nếu là admin thì chuyển hướng sang /admin
+          if (fetchedUser.role === "admin") {
+            router.push("/admin");
+          }
         } else {
-          console.error("Invalid user data:");
           setUser(null);
+          router.push("/");
         }
       })
-      .catch((err) => {
-        //console.error("Error fetching user data:");
+      .catch(() => {
         setUser(null);
+        router.push("/");
       });
   }, []);
 
   // Handle logout
   const handleLogout = async () => {
+    const confirmed = window.confirm("Bạn có chắc chắn muốn đăng xuất?");
+    if (!confirmed) return;
     try {
       await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
       setUser(null);
@@ -73,20 +84,30 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header onLogout={handleLogout} onShowAuth={() => setShowAuth(true)} user={user} />
-      {/* Body */}
-      <main className="flex-grow flex flex-col items-center justify-center text-center pt-1 pb-8">
+      <Filler />
+      <Slider />
+      <main className="flex-grow flex flex-col items-center justify-center text-center pt-1">
         {showAuth && (
           <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.4)] z-41">
             <AuthForm onClose={() => setShowAuth(false)} setUser={setUser} />
           </div>
         )}
         <div className="mt-2">
-          <div className="h-96"> <EventList filterType="âm nhạc" /></div>
-          <div className="h-96"> <EventList filterType="văn hóa nghệ thuật" /></div>
-          <div className="h-96"> <EventList filterType="thể thao" /></div>
-          <div className="h-96"> <EventList filterType="khác" /></div>
-        </div>
+          <div className="h-96">
+            <EventList filterType="âm nhạc" />
+          </div>
+          <div className="h-96">
+            <EventList filterType="văn hóa nghệ thuật" />
+          </div>
+          <div className="h-96">
+            <EventList filterType="thể thao" />
+          </div>
+          <div className="h-96">
+            <EventList filterType="khác" />
+          </div>
+          </div>
       </main>
+
       <Footer />
     </div>
   );

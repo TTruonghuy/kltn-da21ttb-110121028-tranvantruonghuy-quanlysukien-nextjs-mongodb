@@ -20,6 +20,9 @@ interface UserProfileProps {
     weblink?: string;
     social_link?: string;
     logo?: string;
+    bank_name?: string;            // Thêm
+    bank_account_number?: string;  // Thêm
+    bank_account_holder?: string;
   };
   onUpdate: (data: any) => void;
   onDelete: () => void;
@@ -80,7 +83,7 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
         });
       } else {
         res = await fetch(`http://localhost:5000/users/${user._id}`, {
-          method: "PUT",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify(form),
@@ -119,8 +122,8 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
 
   return (
     <div className="flex min-h-screen w-full bg-white">
-      {/* Sidebar */}
-      {!isOrganizer && <Sidebar isOrganizer={isOrganizer} />}
+      {/* Sidebar
+      {!isOrganizer && <Sidebar isOrganizer={isOrganizer} />} */}
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
@@ -141,7 +144,7 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
 
         {/* Form */}
         <div className="flex-1 flex justify-center items-center py-2 flex-col">
-          <h2 className="text-2xl font-semibold mt-4 text-blue-950">
+          <h2 className="text-2xl font-semibold mt-4 ">
             {isOrganizer ? "Thông tin tổ chức" : "Thông tin cá nhân"}
           </h2>
           {success && <div className="text-green-600 ">Cập nhật thành công!</div>}
@@ -158,7 +161,13 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
                   placeholder="Tên tổ chức"
                 />
               ) : (
-                <div className="flex-1 border-b px-3 py-2">{form.name}</div>
+                <input
+                  name="name"
+                  value={form.name || ""}
+                  onChange={handleChange}
+                  className="flex-1 border rounded-lg px-3 py-2"
+                  placeholder="Tên người dùng"
+                />
               )}
             </div>
             {/* Email */}
@@ -230,6 +239,37 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
                     name="logo"
                     accept="image/*"
                     onChange={handleChange}
+                  />
+                </div>
+
+                <div className="flex items-center mb-4">
+                  <label className="w-40 font-semibold">Ngân hàng</label>
+                  <input
+                    name="bank_name"
+                    value={form.bank_name || ""}
+                    onChange={handleChange}
+                    className="flex-1 border rounded-lg px-3 py-2"
+                    placeholder="Tên ngân hàng"
+                  />
+                </div>
+                <div className="flex items-center mb-4">
+                  <label className="w-40 font-semibold">Số tài khoản</label>
+                  <input
+                    name="bank_account_number"
+                    value={form.bank_account_number || ""}
+                    onChange={handleChange}
+                    className="flex-1 border rounded-lg px-3 py-2"
+                    placeholder="Số tài khoản"
+                  />
+                </div>
+                <div className="flex items-center mb-4">
+                  <label className="w-40 font-semibold">Tên chủ tài khoản</label>
+                  <input
+                    name="bank_account_holder"
+                    value={form.bank_account_holder || ""}
+                    onChange={handleChange}
+                    className="flex-1 border rounded-lg px-3 py-2"
+                    placeholder="Tên chủ tài khoản"
                   />
                 </div>
               </>
@@ -321,6 +361,9 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
                     <span className="italic text-gray-400">Chưa cập nhật</span>
                   )}
                 </div>
+
+
+
               </div>
             </div>
           )}

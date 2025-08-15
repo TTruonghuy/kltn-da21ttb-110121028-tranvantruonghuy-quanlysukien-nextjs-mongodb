@@ -1,9 +1,15 @@
 "use client"
 import { useEffect, useState } from "react";
 import UserProfile from "@/app/components/users/Profile";
+import MyTickets from "@/app/components/users/Ticketme";
+import Sidebar from "@/app/components/users/Sidebar";
+import OrderDetails from "@/app/components/users/Order";
+
 
 export default function UserProfilePage() {
-  const [user, setUser] = useState<any>(null);
+const [user, setUser] = useState<any>(null);
+const [tab, setTab] = useState<"profile" | "tickets">("tickets");
+const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null); // State mới cho order details
 
   // Lấy thông tin user hiện tại từ API /auth/me
   useEffect(() => {
@@ -12,69 +18,30 @@ export default function UserProfilePage() {
       .then(data => setUser(data.user));
   }, []);
 
-  // Cập nhật hồ sơ user
-  const handleUpdate = async (data: any) => {
-    if (!user) return;
-    let res;
-
-    if (user.role === "organizer") {
-      if (data instanceof FormData) {
-        res = await fetch("http://localhost:5000/organizer/me", {
-          method: "PUT",
-          credentials: "include",
-          body: data,
-        });
-      } else {
-        res = await fetch("http://localhost:5000/organizer/me", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(data),
-        });
-      }
-    } else {
-      if (!user._id) return;
-      if (data instanceof FormData) {
-        res = await fetch(`http://localhost:5000/users/${user._id}`, {
-          method: "PUT",
-          credentials: "include",
-          body: data,
-        });
-      } else {
-        res = await fetch(`http://localhost:5000/users/${user._id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(data),
-        });
-      }
-    }
-
-    if (res && res.ok) {
-      const updated = await res.json();
-      setUser(updated); // Cập nhật lại state user
-      alert("Cập nhật thành công!"); // Thông báo cho người dùng
-    } else {
-      alert("Cập nhật thất bại!");
-    }
-  };
-
-
-  // Xóa user (nếu cần)
-  const handleDelete = async () => {
-    if (!user?._id) return;
-    await fetch(`http://localhost:5000/users/${user._id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    setUser(null);
-  };
-
   if (!user) return <div>Đang tải...</div>;
 
-  return <UserProfile
-    user={user}
-    onUpdate={updated => setUser(updated)}
-    onDelete={handleDelete}
-  />;
+ return (
+    <div className="flex">
+      <Sidebar
+        isOrganizer={user.role === "organizer"}
+        
+        onSelectTab={setTab} // truyền hàm đổi tab
+        currentTab={tab}
+      />
+      <div className="flex-1">
+        {tab === "tickets" && (
+          <>
+            {selectedOrderId ? (
+              <OrderDetails
+                orderId={selectedOrderId}
+                onBack={() => setSelectedOrderId(null)} // Hàm back để quay lại list tickets
+              />
+            ) : (
+              <MyTickets setSelectedOrderId={setSelectedOrderId} /> // Truyền prop để set orderId khi click
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
 }

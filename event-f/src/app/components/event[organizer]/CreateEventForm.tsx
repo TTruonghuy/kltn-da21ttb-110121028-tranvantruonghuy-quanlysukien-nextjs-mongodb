@@ -184,18 +184,6 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
                     <label htmlFor="location" className="flex font-bold text-gray-700 mb-2">
                         Địa điểm <p className="text-red-700 pl-1">*</p>
                     </label>
-                    {/* Checkbox sự kiện online */}
-                    <div className="mb-2 ml-10">
-                        <label className="flex items-center">
-                            <input
-                                type="checkbox"
-                                checked={formData.isOnline || false}
-                                onChange={handleOnlineChange}
-                                className="mr-2"
-                            />
-                            Sự kiện online
-                        </label>
-                    </div>
                 </div>
                 {!formData.isOnline && (
                     <VietnameseAddressSelector
