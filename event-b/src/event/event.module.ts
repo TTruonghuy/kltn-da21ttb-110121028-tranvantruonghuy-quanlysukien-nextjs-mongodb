@@ -8,15 +8,17 @@ import { AuthModule } from '../auth/auth.module'; // Import AuthModule để s�
 import { Session, SessionSchema } from '../database/schemas/session.schema';
 import { Ticket, TicketSchema } from '../database/schemas/ticket.schema';
 import { Organizer, OrganizerSchema } from '../database/schemas/organizer.schema';
-import { MailModule } from '../mail/mail.module'; // <-- THÊM DÒNG NÀY
+import { Order, OrderSchema } from '../database/schemas/order.schema';
+import { MailModule } from '../mail/mail.module'; 
 
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Event.name, schema: EventSchema },
-      { name: Session.name, schema: SessionSchema }, // BẮT BUỘC PHẢI CÓ DÒNG NÀY
+      { name: Session.name, schema: SessionSchema }, 
       { name: Ticket.name, schema: TicketSchema },
+      { name: Order.name, schema: OrderSchema },
       { name: Organizer.name, schema: OrganizerSchema },
     ]),
     JwtModule.register({}), // Đảm bảo JwtModule được import

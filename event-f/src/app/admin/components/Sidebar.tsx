@@ -1,5 +1,5 @@
 "use client"
-import { FaChartBar, FaSignOutAlt, FaUser, FaUsers, FaCalendarAlt, FaNewspaper, FaExchangeAlt, FaHome } from "react-icons/fa";
+import { FaChartBar, FaSignOutAlt, FaUser, FaUsers, FaCalendarAlt, FaNewspaper, FaExchangeAlt, FaHome, FaUndo } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 
 interface SidebarProps {
@@ -15,6 +15,8 @@ const sidebarItems = [
   { label: "Ban tổ chức", icon: <FaUsers />, path: "/admin/organizer" },
   { label: "Thanh toán", icon: <FaChartBar />, path: "/admin/payment" },
   { label: "Bản tin", icon: <FaNewspaper />, path: "/admin/new" },
+  { label: "Hoàn vé", icon: <FaUndo />, path: "/admin/refund" },
+
 ];
 
 export default function Sidebar({ onLogout, selected }: SidebarProps) {
@@ -28,10 +30,8 @@ export default function Sidebar({ onLogout, selected }: SidebarProps) {
       <nav className="flex-1">
         <ul className="space-y-4">
           {sidebarItems.map(item => {
-            const isActive =
-              item.path === "/admin"
-                ? pathname === "/admin" // Dashboard chỉ active khi đúng /admin
-                : pathname === item.path || pathname.startsWith(item.path + "/");
+            // So sánh selected với label để xác định active
+            const isActive = selected === item.label;
             return (
               <li key={item.label}>
                 <a

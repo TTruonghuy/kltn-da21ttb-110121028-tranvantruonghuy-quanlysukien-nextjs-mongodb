@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import { TiChevronLeft } from "react-icons/ti";
+import { TiArrowBack } from "react-icons/ti";
+import { FaAngleLeft } from "react-icons/fa6";
 
 interface OrderDetailsProps {
     orderId: string; // Prop orderId
@@ -97,6 +98,9 @@ export default function OrderDetails({ orderId, onBack }: OrderDetailsProps) {
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-6">
+            <button className="flex items-center text-blue-600 mb-4 hover:bg-blue-50 px-2 py-1 rounded" onClick={onBack}>
+              <FaAngleLeft /> Trở lại 
+            </button>
             {/* Thông tin cơ bản */}
             <div className="bg-blue-50 rounded-lg mb-6 shadow">
                 <div className="">

@@ -11,13 +11,7 @@ export default function Sidebar({ isOrganizer, onSelectTab, currentTab }: Sideba
     <div className="w-56 flex flex-col">
       
       <div className="mt-4 flex items-center justify-center h-18">
-        <button
-          className="flex items-center text-blue-950 font-bold px-8 py-2 rounded-lg hover:text-blue-900 transition hover:bg-gray-100"
-          style={{ fontSize: "1.35rem" }}
-          onClick={() => window.history.back()}
-        >
-          <TiChevronLeft size={25} className="mr-2" /> Trở lại
-        </button>
+
       </div>
       <div className="h-100 border-r border-t">
         <nav className="flex flex-col gap-2">

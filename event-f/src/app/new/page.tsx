@@ -4,6 +4,7 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import axios from "@/lib/axiosInstance";
 
 interface News {
     _id: string;
@@ -15,11 +16,28 @@ interface News {
 
 export default function NewsListPage() {
     const router = useRouter();
+
     const [news, setNews] = useState<News[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const limit = 10;
 
+
+    useEffect(() => {
+        axios
+            .get("http://localhost:5000/auth/me", { withCredentials: true })
+            .then((res) => {
+                if (res.data && res.data.user) {
+                    const fetchedUser = res.data.user;
+                    setUser(fetchedUser);
+
+                    // Nếu là admin thì chuyển hướng sang /admin
+                    if (fetchedUser.role === "admin") {
+                        router.push("/admin");
+                    }
+                }
+            })
+    }, []);
 
     useEffect(() => {
         fetch(`http://localhost:5000/new/list?page=${page}&limit=${limit}`)
@@ -34,10 +52,11 @@ export default function NewsListPage() {
     const first = news[0];
     const secondAndThird = news.slice(1, 3);
     const remainingNews = news.slice(3);
+    const [user, setUser] = useState<{ email: string; name: string; avatar?: string; role?: string } | null>(null);
 
     return (
         <div>
-            <Header user={null} onLogout={() => { }} onShowAuth={() => { }} />
+            <Header user={user} onLogout={() => { }} onShowAuth={() => { }} />
             <div className="px-2 py-1 bg-blue-100">
                 <button className="pr-1 hover:underline"
                     onClick={() => router.push('/')}> Trang chủ</button>
@@ -87,7 +106,7 @@ export default function NewsListPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    {news.map(n => (
+                    {news.slice(3).map(n => (
                         <Link href={`/new/${n._id}`} key={n._id}>
                             <div className="flex h-full items-center gap-4 p-2 bg-white rounded shadow hover:bg-blue-50 cursor-pointer">
                                 {n.image && (

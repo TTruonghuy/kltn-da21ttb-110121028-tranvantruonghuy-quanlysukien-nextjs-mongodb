@@ -96,6 +96,8 @@ export default function AdminPage() {
 
         const newsRes = await axios.get("/admin/recent-news");
         setRecentNews(newsRes.data);
+
+       
       } catch (error) {
         console.error("Lỗi fetch data:", error);
         // Data giả fallback với types

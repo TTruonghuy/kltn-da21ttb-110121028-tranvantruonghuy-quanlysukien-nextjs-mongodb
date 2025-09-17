@@ -10,6 +10,7 @@ import { MailService } from 'src/mail/mail.service';
 
 type SessionStat = {
   sessionId: Types.ObjectId;
+  status: string;
   startTime: Date;
   endTime: Date;
   soldTickets: number;
@@ -63,15 +64,26 @@ export class EventService {
 
 
 
-  async getEvents(filter?: { event_type?: string }) {
+  async getEvents(filter?: any, dates?: string[]) {
     try {
       const query: any = { status: "approved" };
       if (filter?.event_type) {
         query.event_type = filter.event_type;
       }
+      if (filter?.province) {
+        const provinceName = filter.province
+          .replace(/^Tỉnh\s+|^Thành phố\s+|^TP\.?\s*/i, "")
+          .trim();
+        query["location.province"] = { $regex: provinceName, $options: "i" };
+      }
+      if (filter?.title) {
+        query.title = filter.title;
+      }
+      if (filter?.search) {
+        query.title = { $regex: filter.search, $options: "i" };
+      }
 
       const events = await this.eventModel.find(query).lean();
-      // Lấy tất cả eventId
       const eventIds = events.map(e => e._id);
 
       // Lấy tất cả session theo eventIds
@@ -99,7 +111,30 @@ export class EventService {
 
       const now = new Date();
 
-      return events
+
+      let filteredEvents = events;
+
+      // Lọc theo ngày nếu có
+if (dates && dates.length > 0) {
+  // Chuyển mảng ngày thành mảng các khoảng [startOfDay, endOfDay]
+  const dateRanges = dates.map(d => {
+    const dt = new Date(d);
+    const start = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), 0, 0, 0, 0);
+    const end = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), 23, 59, 59, 999);
+    return { start, end };
+  });
+  filteredEvents = events.filter(event => {
+    const eventSessions = sessionsByEvent[event._id.toString()] || [];
+    return eventSessions.some(s => {
+      const sessionTime = new Date(s.start_time).getTime();
+      return dateRanges.some(range =>
+        sessionTime >= range.start.getTime() && sessionTime <= range.end.getTime()
+      );
+    });
+  });
+}
+
+      return filteredEvents
         .filter(event => {
           const eventSessions = sessionsByEvent[event._id.toString()] || [];
           // Giữ lại nếu có ít nhất 1 session chưa kết thúc
@@ -126,6 +161,7 @@ export class EventService {
             min_price,
             max_price,
             min_start_time,
+            location: event.location,
           };
         });
     } catch (error) {
@@ -133,7 +169,6 @@ export class EventService {
       throw error;
     }
   }
-
 
   async getEventDetail(eventId: string) {
     try {
@@ -183,6 +218,7 @@ export class EventService {
               min_per_order: ticket.min_per_order,
               max_per_order: ticket.max_per_order,
               sold_quantity: ticket.sold_quantity || 0,
+              status: ticket.status,
             })),
           };
         })
@@ -270,7 +306,7 @@ export class EventService {
         const max_session_end_time = sessionEndTimes.length
           ? new Date(Math.max(...sessionEndTimes.map(d => new Date(d).getTime())))
           : null;
-        
+
         const min_session_start_time = sessionStartTimes.length
           ? new Date(Math.min(...sessionStartTimes.map(d => new Date(d).getTime())))
           : null;
@@ -461,15 +497,18 @@ export class EventService {
         }
       }
 
-      const ticketTypesArr = Object.entries(ticketTypes).map(([type, stat]) => ({
-        type,
-        sold: stat.sold,
-        total: stat.total
+      const ticketTypesArr = sessionTickets.map(t => ({
+        ticketId: t._id.toString(),
+        type: t.ticket_name,
+        sold: ticketTypes[t.ticket_name]?.sold ?? 0,
+        total: t.ticket_quantity || 0,
+        status: t.status || "available"
       }));
 
 
       sessionStats.push({
         sessionId: session._id,
+        status: session.status,
         startTime: session.start_time,
         endTime: session.end_time,
         soldTickets: sessionSoldTickets,
@@ -486,6 +525,7 @@ export class EventService {
     return {
       eventId: event._id,
       title: event.title,
+      status: event.status,
       totalRevenue,
       totalTickets,
       soldTickets,

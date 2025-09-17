@@ -136,7 +136,7 @@ export default function Event() {
         <>
             <div className='bg-blue-100'>
                 <Header user={user} onLogout={handleLogout} onShowAuth={handleShowAuth} />
-                      <Filler />
+                <Filler />
                 <div className="bg-blue-100 min-h-screen p-6 pt-0">
                     <div className="">
                         {/* Nếu đang chọn vé thì hiển thị TicketSelector */}
@@ -165,7 +165,7 @@ export default function Event() {
                                             <div className="flex items-center mb-2">
                                                 <p className='font-semibold mr-2'>Ban tổ chức:</p>
                                                 <div className="flex items-center">
-                                                    {/*  <img src={event.organizer.logo || "/avatar.jpg"} alt={event.organizer.name} className=" max-w-[40px] max-h-[40px] object-cover mr-2" />*/}
+                                                    <img src={event.organizer.logo || "/avatar.jpg"} alt={event.organizer.name} className=" max-w-[40px] max-h-[40px] object-cover mr-2" />
                                                     <span className="font-semibold text-gray-700 text-[14px]">{event.organizer.name}</span>
                                                 </div>
                                             </div>
@@ -209,8 +209,11 @@ export default function Event() {
                                             </span>
                                         </div>
                                         <div className='mt-auto'>
-                                            <div className=" p-2 rounded-lg mb-2 text-sm font-semibold ">
-                                                Giá vé từ {event.min_price.toLocaleString("vi-VN")}đ đến {event.max_price.toLocaleString("vi-VN")}đ
+                                            <div className="p-2 rounded-lg mb-2 text-sm font-semibold ">
+                                                {event.min_price === event.max_price
+                                                    ? <>Giá vé từ {event.min_price.toLocaleString("vi-VN")}đ</>
+                                                    : <>Giá vé từ {event.min_price.toLocaleString("vi-VN")}đ đến {event.max_price.toLocaleString("vi-VN")}đ</>
+                                                }
                                             </div>
                                             <Button
                                                 className={`w-full py-2 rounded-lg font-bold ${allSessionsSoldOut ? "bg-gray-400 text-red-600 cursor-not-allowed" : "bg-blue-950 text-white hover:bg-blue-800"}`}
@@ -230,9 +233,12 @@ export default function Event() {
                                         <img src={event.image} alt={event.title} className=" w-full h-full object-cover rounded-lg rounded-l-[0px] " />
                                     </div>
                                 </div>
+
+
+
                                 <div className=''>
                                     {/* Giới thiệu sự kiện */}
-                                    <div className="bg-white rounded-lg p-4 mr-5 min-h-[200px] w-305">
+                                    <div className="bg-white rounded-lg p-4 min-h-[200px]">
                                         <h2 className="font-semibold mb-4 text-[20px] border-b pb-1">Giới thiệu sự kiện</h2>
                                         <div className="event-description pt-4" dangerouslySetInnerHTML={{ __html: event.description }} />
                                         {/* cần thêm một ô hiển thị ảnh, tên, giới thiệu của ban tổ chức của sự kiện này*/}
@@ -240,7 +246,7 @@ export default function Event() {
 
 
                                     {/* Thông tin vé */}
-                                    <div ref={ticketInfoRef} className="col-span-1 bg-white rounded-lg p-4 w-305 mt-5 ">
+                                    <div ref={ticketInfoRef} className="col-span-1 bg-white rounded-lg p-4 mt-5 ">
                                         <div className="flex items-center justify-between mb-4 border-b pb-2">
                                             <h2 className="font-semibold text-[20px]  ">Thông tin vé</h2>
                                         </div>
@@ -256,7 +262,7 @@ export default function Event() {
                                             );
                                             return (
                                                 <div key={idx} className="mb-6">
-                                                    <div className='flex flex items-center justify-between w-full'>
+                                                    <div className='flex items-center justify-between w-full'>
                                                         <div
                                                             className="font-semibold text-[14px] mb-1 flex items-center cursor-pointer select-none"
                                                             onClick={() => toggleSession(idx)}
@@ -318,7 +324,7 @@ export default function Event() {
                                     </div>
 
                                     {event.organizer && (
-                                        <div className="bg-white rounded-lg p-4 w-305 mt-5">
+                                        <div className="bg-white rounded-lg p-4 mt-5">
                                             <div className="flex items-center mr-4 mb-2">
                                                 <img src={event.organizer.logo} alt={event.organizer.name} className="max-w-[80px] max-h-[80px] object-cover mr-4" />
                                                 <div className="font-semibold text-lg">{event.organizer.name}</div>
@@ -347,8 +353,8 @@ export default function Event() {
                                 {/* Sự kiện liên quan */}
                                 <div className="bg-white rounded-lg p-4 px-2 mt-6">
                                     <h2 className="font-semibold mb-2 text-base text-center text-[20px]">Sự kiện liên quan</h2>
-                                     <Allevent eventType={event.event_type} excludeId={event.id} />
-                                    
+                                    <Allevent eventType={event.event_type} excludeId={event.id} />
+
                                 </div>
                             </>
                         )}

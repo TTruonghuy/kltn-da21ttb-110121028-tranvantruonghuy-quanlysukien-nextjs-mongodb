@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Param, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Res, UploadedFile, UseGuards, UseInterceptors, Put, Delete } from '@nestjs/common';
 import { Response } from 'express';
 import { TicketService } from './ticket.service';
 import { Ticket } from '../database/schemas/ticket.schema';
@@ -10,6 +10,33 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 @Controller('ticket')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) { }
+
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  async createTicket(
+    @Body() body: {
+      session_id: string;
+      ticket_name: string;
+      ticket_price: number;
+      ticket_quantity: number;
+      min_per_order: number;
+      max_per_order: number;
+      description_ticket?: string;
+      stasus?: string;
+    },
+    @Res() res: Response,
+  ) {
+    try {
+      if (!body.session_id || !body.ticket_name || body.ticket_price === undefined || body.ticket_quantity === undefined) {
+        return res.status(400).json({ message: 'Thiếu thông tin vé' });
+      }
+      const ticket = await this.ticketService.createTicket(body);
+      return res.status(201).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+  }
 
   @Post('create')
   @UseGuards(JwtAuthGuard)
@@ -25,7 +52,6 @@ export class TicketController {
     }),
   )
 
-
   async createSessionAndTicket(
     @Body() body: {
       event_id: string;
@@ -37,9 +63,10 @@ export class TicketController {
         ticket_quantity: number;
         min_per_order: number;
         max_per_order: number;
-       // sale_start_time: Date;
-       // sale_end_time: Date;
+        // sale_start_time: Date;
+        // sale_end_time: Date;
         description_ticket?: string;
+        status?: string;
       };
     },
     @UploadedFile() image: Express.Multer.File,
@@ -77,7 +104,7 @@ export class TicketController {
           });
           imageUrl = url;
           console.log('File uploaded successfully. URL:', imageUrl);
-       } catch (error) {
+        } catch (error) {
           console.error('Error uploading image to Firebase:', error);
           throw new Error('Failed to upload image');
         }
@@ -94,6 +121,29 @@ export class TicketController {
       return res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
   }
+
+  @Post('session')
+  @UseGuards(JwtAuthGuard)
+  async createSession(
+    @Body() body: {
+      event_id: string;
+      start_time: Date;
+      end_time: Date;
+    },
+    @Res() res: Response,
+  ) {
+    try {
+      if (!body.event_id || !body.start_time || !body.end_time) {
+        return res.status(400).json({ message: 'Thiếu thông tin xuất diễn' });
+      }
+      const session = await this.ticketService.createSession(body.event_id, body.start_time, body.end_time);
+      return res.status(201).json(session);
+    } catch (error) {
+      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+  }
+
+
 
 
   @Post('create-session-with-tickets')
@@ -112,7 +162,8 @@ export class TicketController {
         //sale_start_time: Date;
         //sale_end_time: Date;
         description_ticket?: string;
-        image?: string; // Nếu muốn upload ảnh, cần xử lý thêm
+        //image?: string; // Nếu muốn upload ảnh, cần xử lý thêm
+        status?: string;
       }>;
     },
     @Res() res: Response,
@@ -135,9 +186,6 @@ export class TicketController {
       return res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
   }
-
-
-
 
   @Post('create-session-with-seatingchart')
   @UseGuards(JwtAuthGuard)
@@ -186,11 +234,39 @@ export class TicketController {
   // Endpoint mới: check-in
   @Post('check-in')
   @UseGuards(JwtAuthGuard) // Bảo vệ, chỉ organizer/staff quét được
-  async checkIn(@Body('qr_data') qrData: string) {
+  async checkIn(@Body() body: { qr_data: string; event_id?: string }) {
     try {
-      return await this.ticketService.checkInTicket(qrData);
+      return await this.ticketService.checkInTicket(body.qr_data, body.event_id);
     } catch (error) {
       return { success: false, message: error.message };
     }
   }
+
+  @Put('session/:id')
+  @UseGuards(JwtAuthGuard)
+  async updateSession(
+    @Param('id') id: string,
+    @Body() body: { start_time: Date; end_time: Date }
+  ) {
+    return this.ticketService.updateSession(id, body);
+  }
+
+  @Delete('session/:id')
+  @UseGuards(JwtAuthGuard)
+  async deleteSession(@Param('id') id: string) {
+    return this.ticketService.deleteSession(id);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  async updateTicket(@Param('id') id: string, @Body() body: any) {
+    return this.ticketService.updateTicket(id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteTicket(@Param('id') id: string) {
+    return this.ticketService.deleteTicket(id);
+  }
+
 }

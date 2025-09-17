@@ -26,7 +26,7 @@ export class Event {
   };
   @Prop()
   image: string;
-  @Prop({ default: 'pending', enum: ['pending', 'approval', 'approved', 'rejected', 'paid'] })
+  @Prop({ default: 'pending', enum: ['pending', 'approval', 'approved', 'rejected', 'paid', 'cancel', 'cancelled'] })
   status: string;
   @Prop({ required: true, enum: ['âm nhạc', 'văn hóa nghệ thuật', 'thể thao', 'khác'] })
   event_type: string;

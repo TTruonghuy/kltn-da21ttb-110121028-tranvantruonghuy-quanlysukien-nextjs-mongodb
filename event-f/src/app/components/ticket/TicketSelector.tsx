@@ -57,6 +57,8 @@ export default function TicketSelector({ tickets, eventTitle, session, location,
 
     const total = tickets.reduce((sum, t) => sum + (selected[t.name] || 0) * t.price, 0);
 
+    const totalQuantity = tickets.reduce((sum, t) => sum + (selected[t.name] || 0), 0);
+
     if (showPayment) {
         const selectedTickets = tickets
             .filter(t => (selected[t.name] || 0) > 0)
@@ -174,12 +176,12 @@ export default function TicketSelector({ tickets, eventTitle, session, location,
                         <span className="font-bold text-green-700 text-[16px]">{total.toLocaleString("vi-VN")} đ</span>
                     </div>
                     <button
-                        className={`mt-2 font-bold py-1 px-24 rounded-lg ${total === 0
+                        className={`mt-2 font-bold py-1 px-24 rounded-lg ${totalQuantity === 0
                             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                             : "bg-green-500 hover:bg-green-400 text-white"
                             }`}
                         onClick={() => setShowPayment(true)}
-                        disabled={total === 0}
+                        disabled={totalQuantity === 0}
                     >
                         Thanh toán
                     </button>

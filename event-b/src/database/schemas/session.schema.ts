@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+
 export type SessionDocument = Session & Document<Types.ObjectId>;
+
 @Schema({ timestamps: true })
 export class Session {
   @Prop({ type: Types.ObjectId, ref: 'Event', required: true })
@@ -9,7 +11,7 @@ export class Session {
   start_time: Date;
   @Prop({ required: true })
   end_time: Date;
-  @Prop({ default: 'active', enum: ['active', 'inactive'] })
+  @Prop({ default: 'active', enum: ['active', 'cancel', 'refunded' ] })
   status: string;
 }
 

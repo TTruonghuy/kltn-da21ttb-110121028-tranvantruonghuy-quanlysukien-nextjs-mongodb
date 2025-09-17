@@ -83,14 +83,13 @@ export default function MyTickets({ setSelectedOrderId }: MyTicketsProps) {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-6 ml-2 mt-3">Vé của tôi: </h1>
 
       {/* Tabs */}
       <div className="flex space-x-3 mb-6 justify-center">
         <button
           className={clsx(
-            "w-40 py-2 rounded-lg font-medium transition",
-            filter === "upcoming" ? "bg-blue-500 text-white" : " hover:bg-gray-300 border-blue-600 border"
+            "w-35 py-1 rounded-lg font-medium transition",
+            filter === "upcoming" ? "bg-blue-500 text-white" : " hover:bg-blue-100 border-blue-600 border"
           )}
           onClick={() => setFilter("upcoming")}
         >
@@ -98,8 +97,8 @@ export default function MyTickets({ setSelectedOrderId }: MyTicketsProps) {
         </button>
         <button
           className={clsx(
-            "w-40 py-2 rounded-lg font-medium transition",
-            filter === "past" ? "bg-green-700 text-white" : "hover:bg-gray-300 border-green-600 border"
+            "w-36 py-1 rounded-lg font-medium transition",
+            filter === "past" ? "bg-green-700 text-white" : "hover:bg-green-100 border-green-600 border"
           )}
           onClick={() => setFilter("past")}
         >
@@ -107,8 +106,8 @@ export default function MyTickets({ setSelectedOrderId }: MyTicketsProps) {
         </button>
         <button
           className={clsx(
-            "w-40 py-2 rounded-lg font-medium transition",
-            filter === "cancelled" ? "bg-red-500 text-white" : "hover:bg-gray-300 border-red-600 border"
+            "w-36 py-1 rounded-lg font-medium transition",
+            filter === "cancelled" ? "bg-red-500 text-white" : "hover:bg-red-100 border-red-600 border"
           )}
           onClick={() => setFilter("cancelled")}
         >

@@ -19,9 +19,9 @@ export default function EventManagementPage() {
     const [showCreateTicketForm, setShowCreateTicketForm] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
-    const [eventListTab, setEventListTab] = useState<"pending" | "approved" | "rejected">("pending");
+    const [eventListTab, setEventListTab] = useState<"pending" | "approved" | "cancel">("pending");
     const [approvedTimeFilter, setApprovedTimeFilter] = useState<"all" | "ongoing" | "past">("all");
-    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [detailEventId, setDetailEventId] = useState<string | null>(null);
 
     const [user, setUser] = useState<{
         email: string;
@@ -164,30 +164,40 @@ export default function EventManagementPage() {
                     )}
                 </nav>
 
-                <main className="flex-grow p-10 pl-0 pt-12 bg-white mr-5 mb-5 ml-[300px]">
-                    
-                    
+                <main className="flex-grow  bg-white mr-5 mb-5 ml-[300px]">
                     {showDashboard && selectedEventId ? (
-                        <div>
+                        <div className="flex-1 mt-10">
                             <button
-                                className=" px-2 pl-0 ml-6 py-1 text-blue-950 rounded hover:bg-blue-100 font-bold"
+                                className=" px-4 pl-0 ml-6 py-1 text-blue-950 rounded hover:bg-blue-100 font-bold flex items-center"
                                 onClick={() => {
                                     setShowDashboard(false);
                                     setSelectedEventId(null);
                                 }}
                             >
-                                <TiChevronLeft className="inline-block " /> Trở lại
+                                <TiChevronLeft className=" w-5 h-5" /> Trở lại
                             </button>
                             <EventDashboard eventId={selectedEventId} />
                         </div>
-                        
+                    ) : detailEventId ? (
+                        <div className="flex-1 ">
+                            <button
+                                className=" px-2 pl-0 ml-6 py-1 text-blue-950 rounded hover:bg-blue-100 font-bold"
+                                onClick={() => setDetailEventId(null)}
+                            >
+                                
+                            </button>
+                            <EventDetailModal
+                                eventId={detailEventId}
+                                onBack={() => setDetailEventId(null)}
+                            />
+                        </div>
                     ) : showProfile && user ? (
                         <Profile
                             user={user}
                             onUpdate={updated => {
                                 setUser({ ...updated, role: user.role });
                             }}
-                            onDelete={() => setShowProfile(false)}
+                           // onDelete={() => setShowProfile(false)}
                         />
                     ) : (
                         <>
@@ -212,7 +222,7 @@ export default function EventManagementPage() {
                             )}
 
                             {activeTab === "saved" && (
-                                <div>
+                                <div className="pt-14 pr-6">
                                     <h2 className="text-xl font-bold mb-4 text-blue-950">Sự kiện đã tạo</h2>
                                     <div className="flex justify-center mb-6">
                                         <button
@@ -228,10 +238,10 @@ export default function EventManagementPage() {
                                             Đã đăng
                                         </button>
                                         <button
-                                            className={`px-10 border-b-3 border-b-red-100 ${eventListTab === "rejected" ? "text-blue-950 font-bold hover:text-blue-800 hover:scale-101" : "text-gray-700 hover:scale-101"}`}
-                                            onClick={() => setEventListTab("rejected")}
+                                            className={`px-10 border-b-3 border-b-red-100 ${eventListTab === "cancel" ? "text-blue-950 font-bold hover:text-blue-800 hover:scale-101" : "text-gray-700 hover:scale-101"}`}
+                                            onClick={() => setEventListTab("cancel")}
                                         >
-                                            Đã xoá
+                                            Đã huỷ
                                         </button>
                                     </div>
 
@@ -259,10 +269,15 @@ export default function EventManagementPage() {
                                         filterStatus={eventListTab}
                                         filterTime={eventListTab === "approved" && approvedTimeFilter !== "all" ? approvedTimeFilter : undefined}
                                         onSelectEvent={(id) => {
-                                            setSelectedEventId(id);
-                                            setShowDashboard(true);
+                                            if (eventListTab === "pending") {
+                                                setDetailEventId(id); // mở modal chi tiết
+                                            } else {
+                                                setSelectedEventId(id);
+                                                setShowDashboard(true);
+                                            }
                                         }}
                                     />
+                                    
                                 </div>
                             )}
                         </>

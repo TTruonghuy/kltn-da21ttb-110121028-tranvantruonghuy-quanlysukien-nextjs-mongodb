@@ -55,7 +55,7 @@ export default function ScanPage() {
       // Gọi API checkInTicket
       const response = await axios.post(
         `/ticket/check-in`,
-        { qr_data: text },
+        { qr_data: text, event_id: eventId },
         { withCredentials: true }
       );
 

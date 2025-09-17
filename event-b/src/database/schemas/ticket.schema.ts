@@ -1,5 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+
+export type TicketDocument = Ticket & Document;
+
 @Schema({ timestamps: true })
 export class Ticket extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Session', required: true })
@@ -9,7 +12,7 @@ export class Ticket extends Document {
   @Prop({ type: Number, required: true })
   ticket_price: number;
   @Prop({ type: Number, required: true })
-  ticket_quantity: number;
+  ticket_quantity: number; //số lượng vé
   @Prop({ type: Number, required: true })
   min_per_order: number;
   @Prop({ type: Number, required: true })
@@ -23,10 +26,10 @@ export class Ticket extends Document {
   //@Prop({ type: String })
   //image: string;
   @Prop({ type: Number, default: 0 })
-  sold_quantity: number;
+  sold_quantity: number; // số lượng vé đã bán
   //@Prop({ type: String, })
   //qr_code: string;
-  //@Prop({ type: String, enum: ['active', 'inactive'], default: 'active' })
- // status: string;
+  @Prop({ type: String, default: 'available', enum: ['available', 'stopped'] })
+  status: string;
 }
 export const TicketSchema = SchemaFactory.createForClass(Ticket);

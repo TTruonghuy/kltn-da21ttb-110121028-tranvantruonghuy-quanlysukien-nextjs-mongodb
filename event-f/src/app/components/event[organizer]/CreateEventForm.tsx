@@ -61,7 +61,7 @@ export default function CreateEventForm({ formData, onFormDataChange, onNext, is
 
     return (
         <form className="space-y-10" >
-            <h2 className="text-xl font-bold mb-4 text-blue-950">Thông tin sự kiện </h2>
+            <h2 className="text-xl font-bold mb-4 mt-10 text-blue-950">Thông tin sự kiện </h2>
             {error && <p className="text-red-500">{error}</p>}
             <div>
                 <label htmlFor="title" className="font-bold text-gray-700 mb-2 flex">

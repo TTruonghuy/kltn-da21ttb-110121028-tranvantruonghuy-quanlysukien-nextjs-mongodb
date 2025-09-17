@@ -30,8 +30,12 @@ export class TicketService {
     }
   }
 
-  async createTicket(data: Partial<Ticket>): Promise<Ticket> {
+  async createTicket(data: any): Promise<Ticket> {
     try {
+      // Chuyển session_id sang ObjectId nếu là string
+      if (data.session_id && typeof data.session_id === 'string') {
+        data.session_id = new Types.ObjectId(data.session_id);
+      }
       const ticket = new this.ticketModel(data);
       return await ticket.save();
     } catch (error) {
@@ -50,8 +54,8 @@ export class TicketService {
     }
   }
 
- 
-async checkInTicket(qrData: string): Promise<any> {
+
+  async checkInTicket(qrData: string, eventId?: string): Promise<any> {
     try {
       // Parse dữ liệu QR
       const parsedData = JSON.parse(qrData);
@@ -87,6 +91,16 @@ async checkInTicket(qrData: string): Promise<any> {
       const ticket = order.tickets[ticketIndex];
       const session = ticket.session_id as any; // Ép kiểu sau populate
       const now = new Date();
+
+      console.log('eventId FE:', eventId);
+      console.log('session.event_id._id:', session.event_id?._id);
+
+      if (!session.event_id || !session.event_id._id) {
+        throw new BadRequestException('Không lấy được thông tin sự kiện từ session');
+      }
+      if (eventId && String(session.event_id._id) !== String(eventId)) {
+        throw new BadRequestException('Vé không thuộc sự kiện này');
+      }
 
       // Kiểm tra trạng thái vé
       if (ticket.status !== 'valid') {
@@ -160,7 +174,20 @@ async checkInTicket(qrData: string): Promise<any> {
     }
   }
 
+  async updateSession(id: string, data: { start_time: Date; end_time: Date }) {
+    return this.sessionModel.findByIdAndUpdate(id, data, { new: true });
+  }
 
+  async deleteSession(id: string) {
+    return this.sessionModel.findByIdAndDelete(id);
+  }
 
+  async updateTicket(id: string, data: any) {
+    return this.ticketModel.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async deleteTicket(id: string) {
+    return this.ticketModel.findByIdAndDelete(id);
+  }
 
 }

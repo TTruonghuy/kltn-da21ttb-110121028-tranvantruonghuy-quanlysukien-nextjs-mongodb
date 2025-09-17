@@ -3,26 +3,26 @@ import { Document, Types } from 'mongoose';
 export type OrderDocument = Order & Document;
 
 @Schema({ timestamps: true })
-
 export class Order {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user_id: Types.ObjectId;
+
   @Prop({ required: true })
   email: string;
+
   @Prop({ type: Number, required: true })
   total_amount: number;
-  @Prop({ type: String, default: 'pending', enum: ['pending', 'paid', 'cancelled', 'refunded'] })
+
+  @Prop({ type: String, default: 'pending', enum: ['pending', 'paid', 'cancel', 'refunded'] })
   status: string;
-  @Prop({ type: String })
-  vnp_TxnRef: string;
-  @Prop({ type: Object })
-  vnp_Response: any;
+
   @Prop({
     type: String,
     default: 'VNPay',
     enum: ['VNPay', 'Cash', 'CreditCard', 'Paypal'] // Có thể thêm các phương thức thanh toán khác nếu cần
   })
   payment_method: string;
+
   @Prop({
     type: [
       {
@@ -44,5 +44,32 @@ export class Order {
     status: string;
     check_in_time: Date | null;
   }>;
+
+  @Prop({
+    type: {
+      txnRef: { type: String },           // Mã đơn hàng gửi sang VNPay (thường = orderId)
+      transactionNo: { type: String },    // Mã giao dịch VNPay trả về
+      bankCode: { type: String },         // Ngân hàng thanh toán
+      bankTrace: { type: String },        // Số trace của ngân hàng
+      payDate: { type: Date },               // Ngày giờ thanh toán
+      refundStatus: {                     // Trạng thái hoàn tiền
+        type: String,
+        enum: ['none', 'pending', 'refunded', 'failed'],
+        default: 'none'
+      },
+      refundTxnNo: { type: String },      // Mã giao dịch hoàn tiền VNPay trả về khi refund
+    },
+    default: {}
+  })
+  payment: {
+    txnRef?: string;
+    transactionNo?: string;
+    bankCode?: string;
+    bankTrace?: string;
+    payDate?: Date;
+    refundStatus?: 'none' | 'pending' | 'refunded' | 'failed';
+    refundTxnNo?: string;
+  };
 }
+
 export const OrderSchema = SchemaFactory.createForClass(Order);

@@ -25,10 +25,10 @@ interface UserProfileProps {
     bank_account_holder?: string;
   };
   onUpdate: (data: any) => void;
-  onDelete: () => void;
+  
 }
 
-export default function UserProfile({ user, onUpdate, onDelete }: UserProfileProps) {
+export default function UserProfile({ user, onUpdate }: UserProfileProps) {
   const [form, setForm] = useState({ ...user });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -127,24 +127,9 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        {/* Header user info */}
-        {!isOrganizer && (
-          <div className="flex items-center px-6 py-4 border-b ">
-            <img
-              src={form.avatar || "/default-avatar.png"}
-              alt="Avatar"
-              className="w-14 h-14 rounded-full mr-6 bg-white border"
-            />
-            <div>
-              <div className="font-semibold text-xl">{form.name}</div>
-              <div className="text-gray-600 text-sm">{form.email}</div>
-            </div>
-          </div>
-        )}
-
         {/* Form */}
         <div className="flex-1 flex justify-center items-center py-2 flex-col">
-          <h2 className="text-2xl font-semibold mt-4 ">
+          <h2 className="text-2xl font-semibold mt-2 ">
             {isOrganizer ? "Thông tin tổ chức" : "Thông tin cá nhân"}
           </h2>
           {success && <div className="text-green-600 ">Cập nhật thành công!</div>}
@@ -369,6 +354,7 @@ export default function UserProfile({ user, onUpdate, onDelete }: UserProfilePro
           )}
 
         </div>
+
       </div>
     </div>
   );

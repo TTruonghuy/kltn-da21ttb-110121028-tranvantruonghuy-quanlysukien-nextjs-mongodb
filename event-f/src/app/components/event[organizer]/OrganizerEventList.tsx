@@ -3,6 +3,8 @@ import { useRouter } from "next/navigation";
 import axios from "@/lib/axiosInstance";
 import { Button } from "@/app/components/ui/button"; // Sử dụng component Button từ thư viện UI của bạn
 import { IoTicketOutline } from "react-icons/io5";
+import EventDetailModal from "./EventDetailModal";
+
 
 interface EventItem {
     _id: string;
@@ -26,13 +28,13 @@ export default function OrganizerEventList({
     filterTime?: "upcoming" | "ongoing" | "past";
     onSelectEvent?: (eventId: string) => void;
 }) {
-    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [detailEventId, setDetailEventId] = useState<string | null>(null);
     const [events, setEvents] = useState<EventItem[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-
-
-
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [cancelReason, setCancelReason] = useState("");
+    const [cancelEventId, setCancelEventId] = useState<string | null>(null);
 
     useEffect(() => {
         axios.get("/event/my-events", { withCredentials: true })
@@ -118,7 +120,6 @@ export default function OrganizerEventList({
         router.push(`/scan/${event._id}`);
     };
 
-
     let filteredEvents = filterStatus
         ? events.filter(ev => ev.status === filterStatus)
         : events;
@@ -184,7 +185,7 @@ export default function OrganizerEventList({
             <div>
                 {ongoingEvents.length > 0 && (
                     <>
-                        <div className="grid pt-6 flex">
+                        <div className="grid pt-6">
                             {ongoingEvents.map(event => (
                                 <div
                                     key={`ongoing-${event._id}`}
@@ -218,29 +219,42 @@ export default function OrganizerEventList({
                                                     Đã bán: {event.total_sold || 0} <IoTicketOutline className="ml-2" />
                                                 </div>
 
-                                                <div className="mt-1 border px-2 py-1 rounded border-blue-200 flex border-blue-200 items-center">
+                                                <div className="mt-1 border px-2 py-1 rounded border-blue-200 flex items-center">
                                                     Còn lại: {event.remaining || 0} <IoTicketOutline className="ml-2" />
                                                 </div>
                                             </div>
 
-                                            <div className="mt-1 border px-2 py-1 rounded border-blue-200 flex border-green-200 mb-1">
+                                            <div className="mt-1 border px-2 py-1 rounded flex border-green-200 mb-1">
                                                 Tổng doanh thu: {(event.total_revenue || 0).toLocaleString('vi-VN')} đ
                                             </div>
 
-                                            <button
-                                                className="rounded bg-blue-950 px-6 py-1 text-white hover:bg-blue-900 ml-auto mt-auto mb-1"
-                                                onClick={e => {
-                                                    e.stopPropagation();
-                                                    onSelectEvent?.(event._id);
-                                                }}
-                                            >
-                                                Chi tiết
-                                            </button>
+                                            <div className=" ml-auto mt-auto mb-1">
+                                                <button
+                                                    className="rounded bg-red-500 px-6 py-1.5 text-white hover:bg-red-600 mr-2"
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        setCancelEventId(event._id);
+                                                        setShowCancelModal(true);
+                                                    }}
+                                                >
+                                                    Huỷ
+                                                </button>
+
+                                                <button
+                                                    className="rounded bg-blue-950 px-6 py-1.5 text-white hover:bg-blue-900 "
+                                                    onClick={e => {
+                                                        e.stopPropagation();
+                                                        onSelectEvent?.(event._id);
+                                                    }}
+                                                >
+                                                    Chi tiết
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     {/*hiển thị model nút mở quét vé*/}
                                     <div
-                                        className="text-gray-500 p-2 ml-4 text-center hover:scale-102 cursor-pointer"
+                                        className="text-gray-500 px-6 py-4 ml- text-center hover:scale-102 cursor-pointer"
                                         onClick={() => openScanPage(event)}
                                     >
                                         <img src="/qr.png" alt="" className="h-35 w-35 " />
@@ -251,11 +265,39 @@ export default function OrganizerEventList({
                         </div>
                     </>
                 )}
-
+                {showCancelModal && (
+                    <div className="fixed inset-0 bg-black/70 bg-opacity-30 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                            <h2 className="font-bold text-lg mb-2 flex justify-center text-red-600">Cảnh báo huỷ sự kiện</h2>
+                            <p className="mb-2 text-sm">
+                               - Việc huỷ sự kiện là hành động không thể hoàn tác.<br />
+                               - Khi xác nhận huỷ, hệ thống sẽ <b>sẽ hoàn tiền toàn bộ vé đã bán cho khách hàng</b>.<br />
+                               - Bạn cần cung cấp lý do huỷ sự kiện cho chúng tôi qua email <b>veadd@gmail.com</b> .
+                            </p>
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    className="px-4 py-1 rounded bg-gray-200 hover:scale-101 hover:bg-gray-100"
+                                    onClick={() => setShowCancelModal(false)}
+                                >Huỷ bỏ</button>
+                                <button
+                                    className="px-4 py-1 rounded bg-red-600 text-white hover:scale-101 hover:bg-red-500"
+                                    //disabled={!cancelReason.trim()}
+                                    onClick={async () => {
+                                        // Gọi API huỷ sự kiện, truyền thêm lý do
+                                        await axios.put(`/event/${cancelEventId}/status`, { status: "cancel", reason: cancelReason }, { withCredentials: true });
+                                        setEvents(prev => prev.map(ev => ev._id === cancelEventId ? { ...ev, status: "cancel" } : ev));
+                                        setShowCancelModal(false);
+                                        setCancelReason("");
+                                    }}
+                                >Xác nhận huỷ</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {pastEvents.length > 0 && (
                     <>
-                        <div className="grid pt-6 flex">
+                        <div className="grid pt-6">
                             {pastEvents.map(event => (
                                 <div
                                     key={`past-${event._id}`}
@@ -290,12 +332,12 @@ export default function OrganizerEventList({
                                                     Đã bán: {event.total_sold || 0} <IoTicketOutline className="ml-2" />
                                                 </div>
 
-                                                <div className="mt-1 border px-2 py-1 rounded border-blue-200 flex border-blue-200 items-center">
+                                                <div className="mt-1 border px-2 py-1 rounded border-blue-200 flex  items-center">
                                                     Còn lại: {event.remaining || 0} <IoTicketOutline className="ml-2" />
                                                 </div>
                                             </div>
 
-                                            <div className="mt-1 border px-2 py-1 rounded border-blue-200 flex border-green-200 mb-1">
+                                            <div className="mt-1 border px-2 py-1 rounded border-blue-200 flex  mb-1">
                                                 Tổng doanh thu: {(event.total_revenue || 0).toLocaleString('vi-VN')} đ
                                             </div>
 
@@ -332,7 +374,7 @@ export default function OrganizerEventList({
                     ${event.status === "pending" ? "bg-green-50" : ""}
                     ${event.status === "approved" ? "bg-blue-50" : ""}
                 `}
-                    //onClick={() => onSelectEvent?.(event._id)}
+                    onClick={() => onSelectEvent?.(event._id)}
                 >
                     <img
                         src={event.image}

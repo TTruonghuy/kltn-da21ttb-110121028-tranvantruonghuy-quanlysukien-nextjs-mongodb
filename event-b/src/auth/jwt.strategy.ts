@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: { sub: string; role: string; email: string }) {
-    console.log("JWT Payload:", payload); // Log thông tin payload từ JWT
+   // console.log("JWT Payload:", payload); // Log thông tin payload từ JWT
     if (!payload || !payload.sub || !payload.role || !payload.email) {
       throw new UnauthorizedException("Invalid JWT payload"); // Xử lý lỗi nếu payload không hợp lệ
     }

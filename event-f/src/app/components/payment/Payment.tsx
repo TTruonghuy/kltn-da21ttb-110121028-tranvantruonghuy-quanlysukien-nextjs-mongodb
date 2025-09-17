@@ -53,6 +53,19 @@ export default function Payment({ email, tickets, total, user_id, onBack }: Paym
                 return;
             }
 
+            if (total === 0) {
+                // Đơn hàng 0 đồng: xác nhận nhận vé
+                await fetch("http://localhost:5000/order/confirm-free", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ orderId: orderData.orderId }),
+                });
+                alert("Nhận vé thành công! Vé đã được gửi đến email và hiển thị trong 'Vé của tôi'.");
+                window.location.href = "/users";
+                setLoading(false);
+                return;
+            }
+
             // 2. Gọi API tạo link thanh toán VNPay
             const resPay = await fetch(`http://localhost:5000/payment/create-payment-url?orderId=${orderData.orderId}&amount=${total}`);
             const payData = await resPay.json();
@@ -145,7 +158,7 @@ export default function Payment({ email, tickets, total, user_id, onBack }: Paym
                         className="w-full py-2 mt-4 bg-green-500 hover:bg-green-400 text-white font-bold rounded-lg"
                         onClick={handlePayment}
                     >
-                        Thanh toán
+                        {total === 0 ? "Nhận vé" : "Thanh toán"}
                     </button>
                 </div>
 

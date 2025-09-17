@@ -177,4 +177,80 @@ export class MailService {
         : [],
     });
   }
+
+
+  async sendRefundEmail(email: string, data: {
+  userName: string;
+  eventTitle: string;
+  sessionTime: string;
+  ticketName: string;
+
+  ticketPrice: number;
+  ticketQuantity: number;
+  orderId: string;
+  refundAmount: number;
+  paymentMethod: string;
+  refundTxnNo: string;
+  refundTime: Date;
+}) {
+  const appPassword = this.configService.get<string>('GMAIL_APP_PASSWORD');
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'ttruonghuy2003@gmail.com',
+      pass: appPassword,
+    },
+  });
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+      <h2 style="color: #ef4444;">Thông báo hoàn tiền đơn hàng: ${data.orderId}</h2>
+      <p>Kính gửi <b>${data.userName}</b>,</p>
+      <p>Chúng tôi xin thông báo rằng đơn hàng của bạn cho sự kiện <b>${data.eventTitle}</b> đã được hoàn tiền thành công do sự kiện/session bị hủy. Dưới đây là thông tin chi tiết:</p>
+      
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">Tên vé</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><b>${data.ticketName}</b></td>
+        </tr>
+        
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">Số lượng vé</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><b>${data.ticketQuantity}</b></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">Thời gian session</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><b>${data.sessionTime}</b></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">Số tiền hoàn</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><b>${data.refundAmount.toLocaleString()} VNĐ</b></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">Phương thức thanh toán</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><b>${data.paymentMethod}</b></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">Mã giao dịch hoàn tiền</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><b>${data.refundTxnNo}</b></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd;">Thời gian hoàn tiền</td>
+          <td style="padding: 8px; border: 1px solid #ddd;"><b>${new Date(data.refundTime).toLocaleString('vi-VN')}</b></td>
+        </tr>
+      </table>
+
+      <p style="margin-top: 20px;">Số tiền sẽ được hoàn về tài khoản thanh toán của bạn trong vòng 5-7 ngày làm việc. Nếu có bất kỳ vấn đề gì, vui lòng liên hệ hỗ trợ.</p>
+      <p>Trân trọng,<br/><b>Đội ngũ Ve++</b></p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: '"Ve++" <ttruonghuy2003@gmail.com>',
+    to: email,
+    subject: `Hoàn tiền đơn hàng ${data.orderId} - Sự kiện ${data.eventTitle}`,
+    html: htmlContent,
+  });
+}
+
 }

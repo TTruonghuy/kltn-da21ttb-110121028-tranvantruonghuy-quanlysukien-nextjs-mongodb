@@ -213,8 +213,10 @@ export default function CreateTicketForm({
                 </div>
             )}
             <form className="space-y-10" onSubmit={handleSubmit}>
-                <div className="flex mb-5">
+                <div className="flex mb-5 mt-10">
                     <h2 className="text-xl font-bold mb-4 mr-20 text-blue-950">Tạo vé</h2>
+                    
+                  {/* Nếu không bán vé   
                     <div className="flex gap-8 mb-5">
                         <label className="flex items-center gap-2">
                             <input
@@ -227,8 +229,10 @@ export default function CreateTicketForm({
                             Không bán vé
                         </label>
                     </div>
+thì ẩn toàn bộ phần tạo vé */}
+
                 </div>
-                {/* Nếu không bán vé thì ẩn toàn bộ phần tạo vé */}
+                
                 {ticketMode !== "none" && (
                     <>
                         {sessions.map((session, idx) => (
@@ -329,7 +333,7 @@ export default function CreateTicketForm({
 
                         <Button
                             type="button"
-                            className="ml-103 bg-blue-950 hover:bg-blue-800 text-white py-2 px-4 rounded-lg"
+                            className="ml-114 bg-blue-950 hover:bg-blue-800 text-white py-2 px-4 rounded-lg"
                             onClick={handleAddSession}
                         >
                             Tạo thêm xuất

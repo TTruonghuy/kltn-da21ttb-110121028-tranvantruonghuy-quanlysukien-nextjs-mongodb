@@ -107,20 +107,43 @@ export class PaymentController {
             }
 
             const order = await this.orderModel.findById(query.vnp_TxnRef)
-                .populate({ path: 'tickets.ticket_id', select: 'ticket_name ticket_price' })  // Populate ticket để lấy ticket_name và ticket_price
+                .populate({ path: 'tickets.ticket_id', select: 'ticket_name ticket_price' })
                 .populate({
                     path: 'tickets.session_id',
-                    populate: { path: 'event_id', select: 'title location' },  // Populate session và event để lấy title, start_time, end_time, location
+                    populate: { path: 'event_id', select: 'title location' },
                 });
             if (!order) {
-
                 throw new NotFoundException('Đơn hàng không tồn tại');
             }
+
+            // Lưu thông tin thanh toán vào trường payment
+            order.payment = {
+                txnRef: query.vnp_TxnRef,
+                transactionNo: query.vnp_TransactionNo,
+                bankCode: query.vnp_BankCode,
+                bankTrace: query.vnp_BankTranNo,
+                refundStatus: order.payment?.refundStatus || 'none', // giữ trạng thái cũ nếu có
+                refundTxnNo: order.payment?.refundTxnNo || undefined,
+            };
+
+            // Lưu toàn bộ response
+            // order.vnp_Response = query;
 
             if (query.vnp_ResponseCode === '00') {
                 // Thanh toán thành công
                 order.status = 'paid';
-                // Tạo QR code cho từng vé
+                if (query.vnp_PayDate) {
+                    const payDateStr = query.vnp_PayDate; // dạng: 20250826094530
+                    const year = parseInt(payDateStr.substring(0, 4), 10);
+                    const month = parseInt(payDateStr.substring(4, 6), 10) - 1; // JS month 0-based
+                    const day = parseInt(payDateStr.substring(6, 8), 10);
+                    const hour = parseInt(payDateStr.substring(8, 10), 10);
+                    const minute = parseInt(payDateStr.substring(10, 12), 10);
+                    const second = parseInt(payDateStr.substring(12, 14), 10);
+
+                    order.payment.payDate = new Date(year, month, day, hour, minute, second);
+                }
+
                 for (const ticket of order.tickets) {
                     ticket.status = 'valid';
                     ticket.qr_code = await QRCode.toDataURL(
@@ -128,7 +151,12 @@ export class PaymentController {
                     );
                     await this.ticketModel.updateOne(
                         { _id: ticket.ticket_id },
-                        { $inc: { sold_quantity: 1 } }
+                        {
+                            $inc: {
+                                sold_quantity: 1,
+                                ticket_quantity: -1
+                            }
+                        }
                     );
                 }
                 await order.save();
@@ -138,12 +166,12 @@ export class PaymentController {
                 // Thanh toán thất bại
                 order.status = 'failed';
                 await order.save();
-
                 return { status: 'failed', code: query.vnp_ResponseCode };
             }
         } catch (error) {
-            //console.error('VNPay Return Error:', error);
             throw new BadRequestException(`Lỗi xử lý kết quả VNPay: ${error.message}`);
         }
     }
+
+
 }

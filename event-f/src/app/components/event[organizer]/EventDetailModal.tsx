@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "@/lib/axiosInstance";
-import { TiArrowBack, TiEdit, TiChevronLeft} from "react-icons/ti";
+import { TiArrowBack, TiEdit, TiChevronLeft, TiArrowSortedDown, TiArrowSortedUp } from "react-icons/ti";
 import CreateEventForm from "./CreateEventForm"; // Giả sử bạn đã tạo component này
 import { EventFormData } from "../types"; // Import kiểu dữ liệu nếu cần
 import CreateTicketForm from "../ticket/CreateTicket"; // Import CreateTicketForm để quản lý sessions/tickets
@@ -39,6 +39,16 @@ interface Session {
     tickets: Ticket[];
 }
 
+interface Organizer {
+    name: string;
+    logo: string;
+    description: string;
+    address?: string;
+    weblink?: string;
+    phone?: string;
+    social_link?: string;
+}
+
 interface EventDetail {
     id?: string;
     title: string;
@@ -55,6 +65,7 @@ interface EventDetail {
     min_price?: number;
     max_price?: number;
     status?: string;
+    organizer?: Organizer;
 }
 
 interface EventDetailModalProps {
@@ -90,7 +101,8 @@ function ticketToDraft(ticket: Ticket): TicketDraft {
         _id: ticket._id,
         ticketName: ticket.name || "",
         ticketPrice: ticket.price || 0,
-        ticketQuantity: ticket.quantity ?? 0,
+
+        ticketQuantity: (ticket as any).ticket_quantity ?? ticket.quantity ?? 0,
         minPerOrder: ticket.min_per_order ?? 1,
         maxPerOrder: ticket.max_per_order ?? 10,
         saleStartTime: ticket.sale_start_time ? ticket.sale_start_time.slice(0, 16) : "",
@@ -116,6 +128,16 @@ function draftToTicket(draft: TicketDraft): Ticket {
     };
 }
 
+
+function toDatetimeLocalString(dateStr?: string) {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    // Lấy timezone local
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
+}
+
 export default function EventDetailModal({ eventId, onBack }: { eventId: string; onBack: () => void }) {
     const [event, setEvent] = useState<EventDetail | null>(null);
     const [loading, setLoading] = useState(true);
@@ -131,6 +153,7 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
     const [showTicketModal, setShowTicketModal] = useState(false);
     const [editingTicket, setEditingTicket] = useState<TicketDraft | null>(null);
     const [editingTicketIndex, setEditingTicketIndex] = useState<number | null>(null);
+    const [openSessions, setOpenSessions] = useState<number[]>([0]);
 
     useEffect(() => {
         if (showEditForm && editFormData) {
@@ -153,16 +176,36 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
     if (!event) return (
         <div>
             <button onClick={onBack} className="mb-4 px-4 py-2 bg-gray-200 rounded">
-                 Quay lại</button>
+                Quay lại</button>
             <div>Không tìm thấy sự kiện.</div>
         </div>
     );
+
+    const toggleSession = (idx: number) => {
+        setOpenSessions(prev =>
+            prev.includes(idx)
+                ? prev.filter(i => i !== idx)
+                : [...prev, idx]
+        );
+    };
 
     const handleEdit = () => {
         if (!event) return;
         console.log("event trước khi map:", event);
         setEditFormData(mapEventDetailToFormData(event));
         setShowEditForm(true);
+    };
+
+
+    const handleAddSession = () => {
+        // Chỉ mở modal rỗng, chưa gọi API
+        setEditingSession({
+            start_time: "",
+            end_time: "",
+            tickets: [],
+        });
+        setEditingSessionIndex(null); // null để biết là session mới
+        setShowEditSessionModal(true);
     };
 
     // Hàm mở modal edit session
@@ -174,44 +217,43 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
 
     // Hàm lưu thay đổi session (gọi API placeholder)
     const handleSaveSession = async () => {
-        if (!editingSession || editingSessionIndex === null || !event) return;
+        if (!editingSession || !event) return;
         try {
-            // Placeholder cho API sửa session (thay bằng API thực khi có)
-            // await axios.put(`http://localhost:5000/session/${editingSession._id}`, editingSession, { withCredentials: true });
-
-            // Cập nhật local state
-            const updatedSessions = [...(event.sessions || [])];
-            updatedSessions[editingSessionIndex] = editingSession;
-            setEvent({ ...event, sessions: updatedSessions });
+            if (!editingSession._id) {
+                // Tạo session mới
+                const res = await axios.post(`http://localhost:5000/ticket/session`, {
+                    event_id: event.id,
+                    start_time: editingSession.start_time,
+                    end_time: editingSession.end_time,
+                }, { withCredentials: true });
+            } else {
+                // Sửa session cũ
+                await axios.put(`http://localhost:5000/ticket/session/${editingSession._id}`, {
+                    start_time: editingSession.start_time,
+                    end_time: editingSession.end_time,
+                }, { withCredentials: true });
+            }
+            // Reload lại event
+            const res = await axios.get(`http://localhost:5000/event/${eventId}`, { withCredentials: true });
+            setEvent(res.data);
             setShowEditSessionModal(false);
             setEditingSession(null);
             setEditingSessionIndex(null);
         } catch (e) {
-            alert("Cập nhật session thất bại!");
+            alert("Lưu session thất bại!");
         }
     };
 
-    // Hàm thêm session mới
-    const handleAddSession = async () => {
-        if (!event) return;
-        const newSession: Session = {
-            start_time: "",
-            end_time: "",
-            tickets: [],
-        };
-        setEditingSession(newSession);
-        setEditingSessionIndex(event.sessions ? event.sessions.length : 0);
-        setShowEditSessionModal(true);
+    // Hàm xoá session
+    const handleDeleteSession = async (sessionId: string) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xoá xuất này không?")) return;
         try {
-            // Placeholder cho API tạo session mới (thay bằng API thực khi có)
-            // const res = await axios.post(`http://localhost:5000/event/${eventId}/session`, newSession, { withCredentials: true });
-            // newSession._id = res.data._id;
-
-            // Cập nhật local state
-            const updatedSessions = [...(event.sessions || []), newSession];
-            setEvent({ ...event, sessions: updatedSessions });
+            await axios.delete(`http://localhost:5000/ticket/session/${sessionId}`, { withCredentials: true });
+            // Reload lại event
+            const res = await axios.get(`http://localhost:5000/event/${eventId}`, { withCredentials: true });
+            setEvent(res.data);
         } catch (e) {
-            alert("Thêm session thất bại!");
+            alert("Xoá xuất thất bại!");
         }
     };
 
@@ -238,47 +280,101 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
 
     // Hàm lưu ticket (add/edit)
     const handleSaveTicket = async () => {
-        if (!editingTicket || !editingSession || editingSessionIndex === null || !event) return;
+        if (!editingTicket || !editingSession || !event) return;
         try {
             const savedTicket = draftToTicket(editingTicket);
-            let updatedTickets = [...editingSession.tickets];
-            if (editingTicketIndex !== null) {
-                // Edit ticket
-                // Placeholder API: await axios.put(`http://localhost:5000/ticket/${savedTicket._id}`, savedTicket, { withCredentials: true });
-                updatedTickets[editingTicketIndex] = savedTicket;
+            if (editingTicket._id) {
+                // Sửa vé
+                await axios.put(`http://localhost:5000/ticket/${editingTicket._id}`, {
+                    ticket_name: savedTicket.name,
+                    ticket_price: savedTicket.price,
+                    ticket_quantity: savedTicket.quantity,
+                    min_per_order: savedTicket.min_per_order,
+                    max_per_order: savedTicket.max_per_order,
+                    description_ticket: savedTicket.description,
+                }, { withCredentials: true });
             } else {
-                // Add new ticket
-                // Placeholder API: const res = await axios.post(`http://localhost:5000/session/${editingSession._id}/ticket`, savedTicket, { withCredentials: true });
-                // savedTicket._id = res.data._id;
-                updatedTickets.push(savedTicket);
+                // Thêm vé mới
+                await axios.post(`http://localhost:5000/ticket`, {
+                    session_id: editingSession._id,
+                    ticket_name: savedTicket.name,
+                    ticket_price: savedTicket.price,
+                    ticket_quantity: savedTicket.quantity,
+                    min_per_order: savedTicket.min_per_order,
+                    max_per_order: savedTicket.max_per_order,
+                    description_ticket: savedTicket.description,
+                }, { withCredentials: true });
+            }
+            // Reload lại event
+            const res = await axios.get(`http://localhost:5000/event/${eventId}`, { withCredentials: true });
+            setEvent(res.data);
+
+            // Cập nhật lại editingSession nếu đang mở modal session
+            if (editingSession._id) {
+                const updatedSession = res.data.sessions?.find(
+                    (s: any) => s._id === editingSession._id
+                );
+                if (updatedSession) {
+                    setEditingSession(updatedSession);
+                }
             }
 
-            // Cập nhật session
-            const updatedSessions = [...(event.sessions || [])];
-            updatedSessions[editingSessionIndex] = { ...editingSession, tickets: updatedTickets };
-            setEvent({ ...event, sessions: updatedSessions });
             setShowTicketModal(false);
             setEditingTicket(null);
             setEditingTicketIndex(null);
         } catch (e) {
-            alert("Cập nhật ticket thất bại!");
+            alert("Lưu vé thất bại!");
+        }
+    };
+
+    // Hàm xoá ticket
+    const handleDeleteTicket = async (ticketId: string) => {
+
+        if (!window.confirm("Bạn có chắc chắn muốn xoá vé này không?")) return;
+
+        try {
+            await axios.delete(`http://localhost:5000/ticket/${ticketId}`, { withCredentials: true });
+            // Reload lại event
+            const res = await axios.get(`http://localhost:5000/event/${eventId}`, { withCredentials: true });
+            setEvent(res.data);
+
+            if (editingSession?._id) {
+                const updatedSession = res.data.sessions?.find(
+                    (s: any) => s._id === editingSession._id
+                );
+                if (updatedSession) {
+                    setEditingSession(updatedSession);
+                }
+            }
+
+        } catch (e) {
+            alert("Xoá vé thất bại!");
         }
     };
 
     return (
         <div className="bg-white rounded-lg ">
             <div className="flex justify-between items-center  py-2 border-b">
-                <button onClick={onBack} className=" mb-4 pr-2 pl-2 py-2 rounded flex font-semibold items-center text-blue-950 hover:scale-102 hover:bg-blue-50">
-                    <TiChevronLeft className=""/> Trở lại</button>
-               {/*<button onClick={handleEdit} className="bg-green-100 mb-4 px-4 py-2 rounded-lg flex font-semibold items-center text-blue-950 hover:scale-102  "> Chỉnh sửa </button> */} 
+                <button onClick={onBack} className=" pr-2 pl-2 py-2 rounded flex font-semibold items-center text-blue-950 hover:scale-102 hover:bg-blue-50">
+                    <TiChevronLeft className="w-5 h-5" /> Trở lại</button>
+                {/*<button onClick={handleEdit} className="bg-green-100 mb-4 px-4 py-2 rounded-lg flex font-semibold items-center text-blue-950 hover:scale-102  "> Chỉnh sửa </button> */}
             </div>
 
-            <div className="flex mb-10">
+            <div className="flex mb-4">
                 <div className="col-span-1 rounded-lg rounded-r-[0px]
                     p-4 w-100 border-l-3 border-t-3 border-b-3 border-blue-900 flex-col flex">
-                    <h1 className="text-base font-bold mb-6">{event.title}</h1>
-                    <div className="flex items-center mb-2 text-xs">
+                    <h1 className="text-base font-bold mb-4">{event.title}</h1>
+                    {event.organizer && (
+                        <div className="flex items-center mb-2">
+                            <p className='font-semibold mr-2'>Ban tổ chức:</p>
+                            <div className="flex items-center">
+                                <img src={event.organizer.logo || "/avatar.jpg"} alt={event.organizer.name} className=" max-w-[40px] max-h-[40px] object-cover mr-2" />
+                                <span className="font-semibold text-gray-700 text-[14px]">{event.organizer.name}</span>
+                            </div>
+                        </div>
+                    )}
 
+                    <div className="flex items-center mb-2 text-[14px]">
                         <span className="flex">
                             <p className="font-bold mr-2" >Thời gian:</p>
                             {event.sessions && event.sessions.length > 0
@@ -286,7 +382,7 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
                                 : ""}
                         </span>
                     </div>
-                    <div className="mb-6 text-xs flex">
+                    <div className="mb-6 text-[14px] flex">
                         <p className="font-bold mr-2 " >Địa điểm:</p>
                         <div className="flex-1">
                             {event.location
@@ -301,15 +397,15 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
                     </div>
 
                     <div className="mt-auto">
-                        <div className="rounded-lg mb-2 text-sm font-semibold">
+                        <div className="rounded-lg mb-2 text-[14px] font-semibold">
                             Giá vé từ {event.min_price?.toLocaleString("vi-VN") ?? "?"}đ đến {event.max_price?.toLocaleString("vi-VN") ?? "?"}đ
                         </div>
-                        <div className="mb-2 text-sm">
+                        <div className="mb-2 text-[14px]">
                             <span className="font-semibold">Trạng thái:</span>{" "}
                             <span className="capitalize">{event.status}</span>
 
                         </div>
-                        <div className="mb-2 text-sm">
+                        <div className="mb-2 text-[14px]">
 
                             <span className="font-semibold">Thể loại:</span>{" "}
                             <span className="capitalize">{event.event_type}</span>
@@ -319,7 +415,7 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
                 </div>
 
 
-                <div className="w-[550px] h-full">
+                <div className="w-[628px] h-full">
                     {event.image && (
                         <img
                             src={event.image}
@@ -338,31 +434,69 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
                         dangerouslySetInnerHTML={{ __html: event.description || "" }}
                     />
                 </div>
+                <button onClick={handleEdit} className="bg-blue-950 mb-4 px-4 py-2 rounded-lg flex items-center ml-auto text-white hover:scale-102 hover:bg-blue-800">
+                    Sửa sự kiện
+                </button>
 
                 <div className=" rounded-lg p-4 border">
                     <div className="flex justify-between items-center">
                         <h2 className="font-semibold mb-4 text-[20px]">Thông tin vé</h2>
                     </div>
-                    {event.sessions && event.sessions.map((session, idx) => (
-                        <div key={idx} className="mb-2">
-                            <div className="font-semibold text-[14px] mb-1 flex justify-between items-center">
-                                Xuất:{" "}
-                                {new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} -
-                                {new Date(session.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })},
-                                {" "}
-                                {new Date(session.start_time).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long" })}
+                    {event.sessions && event.sessions.map((session, idx) => {
+                        const isOpen = openSessions.includes(idx);
+                        return (
+                            <div key={idx} className="mb-6">
+                                <div className='flex items-center justify-between w-full'>
+                                    <div
+                                        className="font-semibold text-[14px] mb-1 flex items-center cursor-pointer select-none"
+                                        onClick={() => toggleSession(idx)}
+                                    >
+                                        {isOpen ? (
+                                            <TiArrowSortedUp className='w-6 h-6' />
+                                        ) : (
+                                            <TiArrowSortedDown className='w-6 h-6' />
+                                        )}
+                                        <div className='flex items-center justify-between w-full'>
+                                            <span className="ml-1">
+                                                Xuất: {new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {" - "}
+                                                {new Date(session.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {" , "}
+                                                {new Date(session.start_time).toLocaleDateString("vi-VN", { day: "numeric", month: "long", year: "numeric" })}
+                                            </span>
+                                        </div>
 
-                                {/* <button onClick={() => handleEditSession(session, idx)} className="bg-green-100 text-blue-950 px-6 py-1 rounded-lg">Sửa</button> */}
-                            </div>
-                            {session.tickets.map((ticket, tIdx) => (
-                                <div key={tIdx} className="flex justify-between items-center bg-gray-100 rounded-[8px] my-2 p-2 text-[14px]">
-                                    <span>{ticket.name}</span>
-                                    <span>{ticket.price.toLocaleString("vi-VN")}.đ</span>
+                                    </div>
+                                    <div className="flex space-x-4">
+                                        <button className=" text-sm px-4 py-1.5 bg-blue-950 text-white rounded-lg hover:bg-blue-800 hover:scale-102"
+                                            onClick={() => handleEditSession(session, idx)}>
+                                            Sửa
+                                        </button>
+                                        <button className=" text-sm px-4 py-1.5 bg-red-300 text-black rounded-lg hover:bg-red-200 hover:scale-102"
+                                            onClick={() => handleDeleteSession(session._id!)}>
+                                            Xoá
+                                        </button>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    ))}
-                    {/* <button onClick={handleAddSession} className="bg-blue-950 text-white px-4 py-2 rounded-lg ml-90">Thêm xuất diễn</button>*/}
+
+
+                                {isOpen && session.tickets.map((ticket, tIdx) => {
+                                    return (
+                                        <div key={tIdx} className="bg-gray-100 rounded-[8px] my-2 p-2 text-[14px] relative">
+                                            <div className="flex justify-between items-center">
+                                                <span className='font-semibold'>{ticket.name}</span>
+                                                <span>{ticket.price.toLocaleString("vi-VN")}.đ</span>
+                                            </div>
+                                            {ticket.description && (
+                                                <div className="text-gray-600 text-xs mt-1">{ticket.description}</div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
+                    <button onClick={handleAddSession} className="bg-blue-950 text-white px-4 py-2 rounded-lg ml-100  hover:bg-blue-800 hover:scale-102">Thêm xuất</button>
                 </div>
             </div>
             {showEditForm && editFormData && (
@@ -436,63 +570,233 @@ export default function EventDetailModal({ eventId, onBack }: { eventId: string;
                         >
                             ×
                         </button>
-                        <h2 className="text-xl font-bold mb-4">Sửa xuất diễn</h2>
-
-                        <div className="flex">
-                            <div className="mr-8 mt-4">
-                                <div className="mb-4 ">
-                                    <label className="block mb-2">Thời gian bắt đầu:</label>
-                                    <input
-                                        type="datetime-local"
-                                        value={editingSession.start_time ? editingSession.start_time.slice(0, 16) : ""}
-                                        onChange={e => setEditingSession({ ...editingSession, start_time: e.target.value })}
-                                        className="border border-gray-300 rounded-md p-2 w-full "
-                                    />
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="block mb-2">Thời gian kết thúc:</label>
-                                    <input
-                                        type="datetime-local"
-                                        value={editingSession.end_time ? editingSession.end_time.slice(0, 16) : ""}
-                                        onChange={e => setEditingSession({ ...editingSession, end_time: e.target.value })}
-                                        className="border border-gray-300 rounded-md p-2 w-full "
-                                    />
+                        <div className="flex p-4">
+                            <div className="">
+                                <h3 className="font-semibold">Xuất</h3>
+                                <div className="mr-8 mt-2">
+                                    <div className="mb-4 ">
+                                        <label className="block mb-2">Thời gian bắt đầu:</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={toDatetimeLocalString(editingSession.start_time)}
+                                            onChange={e => setEditingSession({ ...editingSession, start_time: e.target.value })}
+                                            className="border border-gray-300 rounded-md p-2 w-full "
+                                        />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="block mb-2">Thời gian kết thúc:</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={toDatetimeLocalString(editingSession.end_time)}
+                                            onChange={e => setEditingSession({ ...editingSession, end_time: e.target.value })}
+                                            className="border border-gray-300 rounded-md p-2 w-full "
+                                        />
+                                    </div>
                                 </div>
                             </div>
-
-
-                            <div className="mb-2 w-full p-4 pt-2">
-                                <h3 className="font-semibold mb-2">Danh sách vé</h3>
-                                {editingSession.tickets.map((ticket, idx) => (
-                                    <div key={idx} className="flex justify-between mb-2 bg-gray-100 p-2 rounded-lg">
-                                        <span className="">{ticket.name} - {ticket.price}đ</span>
-                                        {/*<button onClick={() => handleEditTicket(ticket, idx)} className="text-blue-500">Sửa</button>*/}
-                                    </div>
-                                ))}
-                                <button onClick={() => handleEditTicket(null, null)} className="bg-blue-950 text-white px-6 py-2 rounded-lg">Thêm vé</button>
+                            <div className="mb-2 w-full ">
+                                <h3 className="font-semibold mb-4 ">Danh sách vé</h3>
+                                {editingSession._id ? (
+                                    <>
+                                        {editingSession.tickets.map((ticket, idx) => (
+                                            <div key={idx} className="flex justify-between mb-2 bg-gray-100 p-2 px-4 rounded-lg text-sm" onClick={() => handleEditTicket(ticket, idx)}>
+                                                <span className="" >{ticket.name} - {ticket.price}đ</span>
+                                                <div className="flex space-x-4">
+                                                    <button onClick={() => handleEditTicket(ticket, idx)} className="text-blue-700 hover:underline">Sửa</button>
+                                                    <button
+                                                        className="text-red-500 hover:underline"
+                                                        onClick={e => {
+                                                            e.stopPropagation();
+                                                            handleDeleteTicket(ticket._id!);
+                                                        }}
+                                                    >
+                                                        Xoá
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <button onClick={() => handleEditTicket(null, null)} className="bg-blue-950 text-white px-6 py-2 rounded-lg ml-90 mt-1 hover:scale-102 hover:bg-blue-800">Thêm vé</button>
+                                    </>
+                                ) : (
+                                    <div className="text-gray-500 italic">Sau khi thêm xuất mới có thể thêm vé *</div>
+                                )}
                             </div>
                         </div>
-                        <div className="flex justify-end">
-                            <button onClick={handleSaveSession} className="bg-blue-950 text-white px-6 py-2 rounded-lg">Lưu</button>
+
+                        <div className="flex justify-end space-x-4">
+                            <button onClick={() => setShowEditSessionModal(false)} className="bg-gray-400 text-black px-6 py-2 rounded-lg hover:scale-102 hover:bg-gray-300">Hủy</button>
+                            <button onClick={handleSaveSession} className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:scale-102 hover:bg-blue-800">Lưu</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Modal edit/add ticket 
+            {/* Modal edit/add ticket */}
             {showTicketModal && editingTicket && (
-                <TicketModal
-                    open={showTicketModal}
-                    onClose={() => setShowTicketModal(false)}
-                    formData={editingTicket}
-                    onFormDataChange={data => setEditingTicket(prev => {
-                        if (prev === null) return null;
-                        return { ...prev, ...(typeof data === "function" ? data(prev) : data) };
-                    })}
-                    onSave={handleSaveTicket}
-                />
-            )}*/}
+                <div className="fixed inset-0 bg-black/50 bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-[1200px] max-h-[95vh] overflow-y-auto relative shadow-lg">
+                        <button
+                            className="absolute top-2 right-3 text-2xl font-bold text-gray-500 hover:text-black"
+                            onClick={() => setShowTicketModal(false)}
+                        >
+                            ×
+                        </button>
+                        <h3 className="font-semibold mb-4">{editingTicket._id ? "Sửa vé" : "Thêm vé"}</h3>
+                        <div className="w-full">
+
+                            <div className="flex mb-10 w-full justify-between">
+
+                                <div className="w-189 mr-20">
+                                    <label className="font-medium text-gray-700 mb-2">Tên vé</label>
+                                    <input
+                                        type="text"
+                                        className="border rounded-lg w-full p-2"
+                                        value={editingTicket.ticketName ?? ""}
+                                        onChange={e =>
+                                            setEditingTicket(prev => prev ? { ...prev, ticketName: e.target.value } : prev)
+                                        }
+                                        required
+                                    />
+                                </div>
+
+                                <div className="w-79">
+                                    <label className="font-medium text-gray-700 mb-2">Giá vé</label>
+                                    <div className="flex items-end">
+                                        <input
+                                            type="text"
+                                            pattern="[0-9.]*"
+                                            inputMode="numeric"
+                                            className="border rounded-lg w-full p-2"
+                                            value={
+                                                editingTicket.ticketPrice !== undefined
+                                                    ? editingTicket.ticketPrice === 0
+                                                        ? "0"
+                                                        : editingTicket.ticketPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                                                    : ""
+                                            }
+                                            onChange={e => {
+                                                let raw = e.target.value.replace(/\D/g, "");
+                                                raw = raw.replace(/^0+/, "");
+                                                setEditingTicket(prev => prev ? {
+                                                    ...prev,
+                                                    ticketPrice: raw === "" ? 0 : Number(raw),
+                                                } : prev);
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                            </div>
+
+
+
+                            <div className="flex mb-10">
+                                <div className="flex w-full justify-between">
+                                    <div className="mr-20 w-">
+                                        <label className="font-medium text-gray-700 mb-2">Số lượng vé</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            className="border rounded-lg w-full p-2"
+                                            value={
+                                                editingTicket.ticketQuantity !== undefined
+                                                    ? editingTicket.ticketQuantity === 0
+                                                        ? "0"
+                                                        : editingTicket.ticketQuantity
+                                                    : ""
+                                            }
+                                            onChange={e => {
+                                                let raw = e.target.value.replace(/\D/g, "");
+                                                raw = raw.replace(/^0+/, "");
+                                                setEditingTicket(prev => prev ? {
+                                                    ...prev,
+                                                    ticketQuantity: raw === "" ? 0 : Number(raw),
+                                                } : prev);
+                                            }}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="w- mr-20">
+                                        <label className="font-medium text-gray-700 mb-2">Số lượng tối thiểu mỗi lần đặt</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            className="border rounded-lg w-full p-2"
+                                            value={editingTicket.minPerOrder === 0 ? "" : editingTicket.minPerOrder}
+                                            onChange={e => {
+                                                let raw = e.target.value.replace(/\D/g, "");
+                                                raw = raw.replace(/^0+/, "");
+                                                setEditingTicket(prev => prev ? {
+                                                    ...prev,
+                                                    minPerOrder: raw === "" ? 0 : Number(raw),
+                                                } : prev);
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="w-">
+                                    <label className="font-medium text-gray-700 mb-2">Số lượng tối đa mỗi lần đặt</label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        className="border rounded-lg w-full p-2"
+                                        value={editingTicket.maxPerOrder === 0 ? "" : editingTicket.maxPerOrder}
+                                        onChange={e => {
+                                            let raw = e.target.value.replace(/\D/g, "");
+                                            raw = raw.replace(/^0+/, "");
+                                            setEditingTicket(prev => prev ? {
+                                                ...prev,
+                                                maxPerOrder: raw === "" ? 0 : Number(raw),
+                                            } : prev);
+                                        }}
+                                        required
+                                    />
+                                </div>
+
+                            </div>
+
+
+
+
+                            <div className="flex mb-10 w-full">
+                                <div className="flex flex-col w-full mr-2 ">
+                                    <label className="font-medium text-gray-700">Mô tả</label>
+                                    <textarea
+                                        className="w-full h-34 rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400 hover:scale-101"
+                                        value={editingTicket.description_ticket ?? ""}
+                                        onChange={e =>
+                                            setEditingTicket(prev => prev ? { ...prev, description_ticket: e.target.value } : prev)
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div className="flex justify-end gap-2 space-x-4">
+                            <button
+                                className="bg-gray-400 px-6 py-2 rounded-lg hover:bg-gray-300 hover:scale-102"
+                                onClick={() => setShowTicketModal(false)}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-800 hover:scale-102"
+                                onClick={handleSaveTicket}
+                            >
+                                Lưu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

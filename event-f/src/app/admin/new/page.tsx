@@ -101,17 +101,17 @@ export default function NewsAdminPage() {
   };
 
 
-    const handleLogout = async () => {
-      if (!window.confirm("Bạn có chắc chắn muốn đăng xuất?")) return;
-      try {
-        await axios.post("/auth/logout", {}, { withCredentials: true });
-        router.push("/");
-      } catch (error) {
-        console.error("Lỗi đăng xuất:", error);
-      }
-    };
+  const handleLogout = async () => {
+    if (!window.confirm("Bạn có chắc chắn muốn đăng xuất?")) return;
+    try {
+      await axios.post("/auth/logout", {}, { withCredentials: true });
+      router.push("/");
+    } catch (error) {
+      console.error("Lỗi đăng xuất:", error);
+    }
+  };
 
-    const router = useRouter();
+  const router = useRouter();
 
   return (
     <div className="flex min-h-screen bg-[#f6f8fb]">
@@ -140,7 +140,7 @@ export default function NewsAdminPage() {
           <tbody>
             {news.map(n => (
               <tr key={n._id} className="border-b hover:bg-blue-50">
-                
+
                 <td className="p-2 px-4">
                   {n.image && <img src={n.image} alt="" className="w-24 h-14 object-cover rounded" />}
                 </td>
@@ -153,7 +153,7 @@ export default function NewsAdminPage() {
                     Sửa
                   </button>
                   <button
-                    className="bg-red-400 text-white py-1 px-3 rounded-lg hover:bg-red-200" 
+                    className="bg-red-400 text-white py-1 px-3 rounded-lg hover:bg-red-200"
                     onClick={() => handleDelete(n._id)}
                   >
                     Xóa
@@ -173,26 +173,26 @@ export default function NewsAdminPage() {
 
               <div className="mb-3 flex items-center justify-between">
                 <div>
-                <label className="font-semibold mr-2">Tiêu đề</label>
-                <input
-                  className="w-130 border rounded-lg p-1 px-2 mt-1"
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  required
-                />
-</div>
-            <div>
-                <label className="font-semibold mr-2">Ảnh</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => setImage(e.target.files?.[0] || null)}
-                  className=" mt-1 border rounded-lg p-1 px-2"
-                />
-                {imageUrl && (
-                  <img src={imageUrl} alt="" className="w-32 h-20 object-cover rounded mt-2" />
-                )}
-</div>
+                  <label className="font-semibold mr-2">Tiêu đề</label>
+                  <input
+                    className="w-130 border rounded-lg p-1 px-2 mt-1"
+                    value={title}
+                    onChange={e => setTitle(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold mr-2">Ảnh</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setImage(e.target.files?.[0] || null)}
+                    className=" mt-1 border rounded-lg p-1 px-2"
+                  />
+                  {imageUrl && (
+                    <img src={imageUrl} alt="" className="w-32 h-20 object-cover rounded mt-2" />
+                  )}
+                </div>
               </div>
               <div className="mb-3">
                 <label className="font-semibold">Nội dung</label>

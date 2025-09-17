@@ -38,6 +38,21 @@ const TicketModal: React.FC<TicketModalProps> = ({
 
     const [previewUrl, setPreviewUrl] = React.useState<string>("");
 
+    const handleSave = () => {
+        // Kiểm tra các field bắt buộc
+        if (
+            !formData.ticketName ||
+            formData.ticketPrice === undefined ||
+            formData.ticketQuantity === undefined ||
+            formData.minPerOrder === undefined ||
+            formData.maxPerOrder === undefined
+        ) {
+            alert("Vui lòng điền đầy đủ thông tin các trường bắt buộc.");
+            return;
+        }
+        onSave();
+    };
+
     React.useEffect(() => {
         if (!formData) return;
 
@@ -94,9 +109,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
                                 required
                             />
                         </div>
-
-
-
                         <div className="w-83">
                             <label htmlFor="ticketPrice" className="font-medium text-gray-700 mb-2">
                                 Giá vé
@@ -128,11 +140,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
                             </div>
                         </div>
                     </div>
-
-
-
-
-
                     <div className="flex mb-10">
                         <div className="mr-20 w-150">
                             <label htmlFor="ticketQuantity" className="font-medium text-gray-700 mb-2">
@@ -144,25 +151,24 @@ const TicketModal: React.FC<TicketModalProps> = ({
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9]*"
-                                value={formData.ticketQuantity === 0 ? "" : formData.ticketQuantity}
+                                value={
+                                    formData.ticketQuantity !== undefined
+                                        ? formData.ticketQuantity === 0
+                                            ? "0"
+                                            : formData.ticketQuantity
+                                        : ""
+                                }
                                 onChange={e => {
                                     let raw = e.target.value.replace(/\D/g, "");
                                     raw = raw.replace(/^0+/, "");
                                     onFormDataChange(prev => ({
-                                        ...prev, // Giữ lại các trường đã nhập trước đó
+                                        ...prev,
                                         ticketQuantity: raw === "" ? 0 : Number(raw),
                                     }));
                                 }}
                                 required
                             />
                         </div>
-
-
-
-
-
-
-
                         <div className="w-full mr-20">
                             <label htmlFor="minPerOrder" className="font-medium text-gray-700 mb-2">
                                 Số lượng tối thiểu mỗi lần đặt
@@ -185,12 +191,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
                                 required
                             />
                         </div>
-
-
-
-
-
-
                         <div className="w-full">
                             <label htmlFor="maxPerOrder" className="font-medium text-gray-700 mb-2">
                                 Số lượng tối đa mỗi lần đặt
@@ -214,8 +214,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
                             />
                         </div>
                     </div>
-
-
                     <div className="flex mb-10">
                         <div className="flex flex-col w-full mr-2 ">
                             <label htmlFor="description_ticket" className="font-medium text-gray-700">
@@ -235,57 +233,13 @@ const TicketModal: React.FC<TicketModalProps> = ({
                                 }}
                             >
                             </textarea>
-
-
                         </div>
-
-                        {/*
-                        <div >
-                            <label htmlFor="image_ticket" className="font-medium text-gray-700">
-                                Ảnh sự vé
-                            </label>
-                            <div className="relative w-60 h-34 bg-gray-100/50 rounded-md group">
-                                <input
-                                    id="image_ticket"
-                                    name="image_ticket"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={e => {
-                                        const file = e.target.files?.[0] ?? null;
-                                        onFormDataChange(prev => ({
-                                            ...prev,
-                                            image_ticket: file
-                                        }));
-                                    }}
-                                    className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-30"
-                                />
-                                {previewUrl ? (
-                                    <div className="w-full h-full overflow-hidden rounded-md border transition-opacity duration-300">
-                                        <img
-                                            src={previewUrl}
-                                            alt="Ảnh vé preview"
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute top-0 left-0 w-full h-full bg-gray-200 rounded-md flex flex-col items-center justify-center text-gray-500 opacity-0 group-hover:opacity-80 transition-opacity duration-300 z-20">
-                                            <p className="mb-2">Chọn lại ảnh</p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="w-full h-full bg-gray-200 rounded-md flex flex-col items-center justify-center text-gray-500 z-10">
-
-                                        <p className="mb-2">Chọn ảnh</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>*/}
-
                     </div>
-                    {/* Nút đóng ở dưới cùng */}
                     <div className="flex justify-end mt-4">
                         <Button
                             type="button"
                             className="bg-blue-950 hover:bg-blue-800 text-white py-2 px-8"
-                            onClick={onSave}
+                            onClick={handleSave}
                         >
                             Lưu
                         </Button>
